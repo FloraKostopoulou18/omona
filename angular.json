@@ -7,7 +7,7 @@
   },
   "newProjectRoot": "projects",
   "projects": {
-    "omona": {
+    "mosaic": {
       "projectType": "application",
       "schematics": {},
       "root": "",
@@ -55,10 +55,10 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "omona:build:production"
+              "buildTarget": "mosaic:build:production"
             },
             "development": {
-              "buildTarget": "omona:build:development"
+              "buildTarget": "mosaic:build:development"
             }
           },
           "defaultConfiguration": "development"

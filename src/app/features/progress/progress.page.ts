@@ -39,15 +39,15 @@ import { AchievementComponent, ProgressChartComponent, SkillCardComponent } from
     .page-header { margin-bottom: 23px; }
     .summary-row { display: grid; grid-template-columns: 1fr 1fr 1.3fr; gap: 12px; }
     .summary-card { display: flex; align-items: center; gap: 12px; padding: 15px; }
-    .summary-symbol { display: grid; width: 39px; height: 39px; place-items: center; border-radius: 13px; background: #eaf2ed; color: #598069; font-size: 17px; }
+    .summary-symbol { display: grid; width: 39px; height: 39px; place-items: center; border-radius: 13px; background: var(--selection-surface); color: var(--selection-text); font-size: 17px; }
     .summary-symbol.sun { background: #f6eee2; color: #ac8747; }
     .summary-card div { display: grid; }
     .summary-card strong { color: #35443b; font: 700 18px 'Manrope', sans-serif; }
     .summary-card span:last-child { color: #929d95; font-size: 10px; }
-    .focus-card { display: grid; align-content: center; gap: 2px; padding: 13px 17px; border-radius: 16px; background: #eaf2ed; }
-    .focus-label { color: #78917e; font-size: 9px; font-weight: 700; letter-spacing: .09em; }
-    .focus-card strong { color: #3d6048; font: 700 16px 'Manrope', sans-serif; }
-    .focus-card > span:last-child { color: #78917e; font-size: 10px; }
+    .focus-card { display: grid; align-content: center; gap: 2px; padding: 13px 17px; border-radius: 16px; background: var(--selection-surface); }
+    .focus-label { color: var(--muted); font-size: 9px; font-weight: 700; letter-spacing: .09em; }
+    .focus-card strong { color: var(--selection-text); font: 700 16px 'Manrope', sans-serif; }
+    .focus-card > span:last-child { color: var(--muted); font-size: 10px; }
     .section-block { margin-top: 28px; }
     .section-title { display: flex; align-items: flex-end; justify-content: space-between; gap: 14px; margin-bottom: 13px; }
     .section-title .eyebrow { margin-bottom: 3px; color: #9ba49d; font-size: 9px; }

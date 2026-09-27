@@ -54,14 +54,14 @@ import { ExerciseContainerComponent, ExerciseFeedbackComponent } from '../../sha
     .scenario-heading h2 { margin: 0; font-size: 16px; }
     .travel-board { overflow: hidden; margin-bottom: 14px; border: 1px solid #e9e2d6; border-radius: 16px; background: #fff; box-shadow: var(--shadow); }
     .board-top { display: flex; justify-content: space-between; padding: 14px 18px; background: #fbf8f1; color: #82765d; font-size: 9px; font-weight: 700; letter-spacing: .1em; }
-    .board-top span { color: #62836c; letter-spacing: .02em; }
-    .route-name { display: flex; align-items: center; gap: 13px; padding: 21px 19px 17px; color: #344139; font: 700 18px 'Manrope', sans-serif; }
-    .route-number { display: grid; width: 38px; height: 35px; place-items: center; border-radius: 8px; background: #506d5a; color: #fff; font: 700 15px 'DM Sans', sans-serif; }
+    .board-top span { color: var(--mosaic-indigo); letter-spacing: .02em; }
+    .route-name { display: flex; align-items: center; gap: 13px; padding: 21px 19px 17px; color: var(--ink); font: 700 18px 'Manrope', sans-serif; }
+    .route-number { display: grid; width: 38px; height: 35px; place-items: center; border-radius: 8px; background: var(--primary-action); color: #fff; font: 700 15px 'DM Sans', sans-serif; }
     .route-arrow { margin-left: auto; color: #bd9a5c; }
     .travel-details { display: grid; grid-template-columns: .8fr .7fr 1.5fr; gap: 8px; padding: 14px 19px 17px; border-top: 1px solid #f0eee9; }
     .travel-details div { display: grid; gap: 5px; }
     .travel-details small { color: #a49b8b; font-size: 8px; font-weight: 700; letter-spacing: .07em; }
-    .travel-details strong { color: #3d4b41; font-size: 13px; }
+    .travel-details strong { color: var(--ink); font-size: 13px; }
     .board-footer { padding: 10px 19px; background: #faf9f6; color: #8d918b; font-size: 10px; }
     .real-life-aside { margin-top: 58px; padding: 19px; border: 1px solid #eee6d8; border-radius: 15px; background: #fbf8f1; }
     .aside-label { color: #aa956f; font-size: 9px; font-weight: 700; letter-spacing: .08em; }

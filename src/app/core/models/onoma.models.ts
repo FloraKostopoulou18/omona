@@ -8,9 +8,33 @@ export type ExerciseType =
 
 export type ActivityType = 'exercise' | 'real-world';
 export type ExerciseMode = 'assessment' | 'practice' | 'real-world';
+export type ReadingFont = 'default' | 'lexend' | 'opendyslexic';
+
+export const LEARNER_INTERESTS = [
+  'Animals',
+  'Art & crafts',
+  'Books & stories',
+  'Cooking & food',
+  'Dance',
+  'Games & puzzles',
+  'Music',
+  'Nature',
+  'Science & space',
+  'Sports',
+  'Technology',
+  'Travel',
+] as const;
+
+export type LearnerInterest = (typeof LEARNER_INTERESTS)[number];
+
+export function isLearnerInterest(value: string): value is LearnerInterest {
+  return LEARNER_INTERESTS.some((interest) => interest === value);
+}
 
 export interface AccessibilityPreferences {
+  readingFont: ReadingFont;
   fontSize: 'comfortable' | 'large' | 'extra-large';
+  letterSpacing: 'standard' | 'wide' | 'wider';
   lineSpacing: 'standard' | 'relaxed' | 'wide';
   textToSpeech: boolean;
   audioInstructions: boolean;

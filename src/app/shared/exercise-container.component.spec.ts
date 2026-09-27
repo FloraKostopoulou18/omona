@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { Exercise, ExerciseAttempt } from '../core/models/onoma.models';
+import { UserService } from '../core/services/onoma.services';
 import { ExerciseContainerComponent } from './exercise-container.component';
 
 const sampleExercise: Exercise = {
@@ -44,5 +45,42 @@ describe('ExerciseContainerComponent', () => {
       hintsUsed: 0,
     });
     expect(attempts[0].responseTime).toBeGreaterThanOrEqual(0);
+  });
+
+  it('lets learners select the line to highlight', async () => {
+    const fixture = TestBed.createComponent(ExerciseContainerComponent);
+    fixture.componentRef.setInput('exercise', {
+      ...sampleExercise,
+      content: { ...sampleExercise.content, prompt: 'First line\nSecond line' },
+    });
+    fixture.componentRef.setInput('mode', 'practice');
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const lines = fixture.nativeElement.querySelectorAll('.prompt-line') as NodeListOf<HTMLButtonElement>;
+    expect(lines).toHaveLength(2);
+    expect(lines[0].getAttribute('aria-pressed')).toBe('true');
+    lines[1].click();
+    fixture.detectChanges();
+    expect(lines[0].getAttribute('aria-pressed')).toBe('false');
+    expect(lines[1].getAttribute('aria-pressed')).toBe('true');
+  });
+
+  it('updates prompt, answer, and support text sizes when the preference changes', async () => {
+    const fixture = TestBed.createComponent(ExerciseContainerComponent);
+    fixture.componentRef.setInput('exercise', sampleExercise);
+    fixture.componentRef.setInput('mode', 'practice');
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    TestBed.inject(UserService).applyFontSize('extra-large');
+    fixture.detectChanges();
+
+    const prompt = fixture.nativeElement.querySelector('.prompt, .prompt-line') as HTMLElement;
+    const answer = fixture.nativeElement.querySelector('.answer-option') as HTMLElement;
+    const reassurance = fixture.nativeElement.querySelector('.reassurance') as HTMLElement;
+    expect(prompt.style.fontSize).toBe('36px');
+    expect(answer.style.fontSize).toBe('22px');
+    expect(reassurance.style.fontSize).toBe('15px');
   });
 });

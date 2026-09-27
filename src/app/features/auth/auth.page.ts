@@ -9,7 +9,7 @@ import { AuthService } from '../../core/services/onoma.services';
   template: `
     <main class="auth-page">
       <section class="auth-story">
-        <a class="brand" routerLink="/dashboard"><span class="brand-mark" aria-hidden="true">o</span> onoma</a>
+        <a class="brand" routerLink="/dashboard"><img class="brand-mark" src="/mosaic/mosaic-logo.png" alt="" /> Mosaic</a>
         <div class="story-copy">
           <span class="story-kicker">LEARNING, YOUR WAY</span>
           <h1>A little more you<br />in every lesson.</h1>
@@ -56,7 +56,7 @@ import { AuthService } from '../../core/services/onoma.services';
             </button>
           </form>
           <p class="switch-auth">
-            {{ isRegister ? 'Already have a space?' : 'New to Onoma?' }}
+            {{ isRegister ? 'Already have a space?' : 'New to Mosaic?' }}
             <a [routerLink]="isRegister ? '/login' : '/register'">{{ isRegister ? 'Sign in' : 'Create an account' }}</a>
           </p>
           <p class="privacy-note">Your learning journey is personal. Your details stay private.</p>
@@ -67,22 +67,22 @@ import { AuthService } from '../../core/services/onoma.services';
   styles: [`
     :host { display: block; min-height: 100vh; }
     .auth-page { display: grid; min-height: 100vh; grid-template-columns: .9fr 1.1fr; background: #fff; }
-    .auth-story { position: relative; display: flex; min-height: 100vh; flex-direction: column; overflow: hidden; padding: 31px 8%; background: #edf3ed; }
-    .brand { display: inline-flex; width: fit-content; align-items: center; gap: 9px; font: 800 22px 'Manrope', sans-serif; letter-spacing: -.06em; }
-    .brand-mark { display: grid; width: 31px; height: 31px; place-items: center; border-radius: 10px; background: var(--green); color: #fff; }
+    .auth-story { position: relative; display: flex; min-height: 100vh; flex-direction: column; overflow: hidden; padding: 31px 8%; background: var(--mosaic-blue); }
+    .brand { display: inline-flex; width: fit-content; align-items: center; gap: 10px; color: var(--ink); font: 800 22px 'Manrope', sans-serif; letter-spacing: -.045em; }
+    .brand-mark { display: block; width: 34px; height: 34px; object-fit: contain; }
     .story-copy { position: relative; z-index: 1; width: min(100%, 390px); margin: auto 0; }
-    .story-kicker { color: #718b77; font-size: 10px; font-weight: 700; letter-spacing: .12em; }
-    .story-copy h1 { margin: 12px 0 14px; color: #2f4d3a; font-size: clamp(35px, 4vw, 52px); line-height: 1.1; }
-    .story-copy p { max-width: 340px; color: #738578; font-size: 14px; line-height: 1.7; }
+    .story-kicker { color: var(--green-dark); font-size: 10px; font-weight: 700; letter-spacing: .12em; }
+    .story-copy h1 { margin: 12px 0 14px; color: var(--ink); font-size: clamp(35px, 4vw, 52px); line-height: 1.1; }
+    .story-copy p { max-width: 340px; color: var(--muted); font-size: 14px; line-height: 1.7; }
     .story-art { position: relative; width: 100%; height: 205px; margin-top: 32px; }
-    .art-sun { position: absolute; top: 37px; left: 37%; width: 94px; height: 94px; border-radius: 50%; background: #eadfc8; }
-    .art-orbit { position: absolute; top: 6px; left: 22%; width: 220px; height: 145px; border: 1px solid #cbd9ca; border-radius: 50%; transform: rotate(-25deg); }
+    .art-sun { position: absolute; top: 37px; left: 37%; width: 94px; height: 94px; border: 8px solid #263943; border-radius: 21px; background: #efd775; transform: rotate(12deg); }
+    .art-orbit { position: absolute; top: 6px; left: 22%; width: 220px; height: 145px; border: 2px solid #263943; border-radius: 50%; transform: rotate(-25deg); }
     .orbit-two { top: 18px; left: 13%; width: 270px; height: 130px; transform: rotate(22deg); }
-    .art-leaf { position: absolute; top: 111px; left: 47%; width: 42px; height: 75px; border-radius: 100% 0 100% 0; background: #8da98d; transform: rotate(35deg); }
-    .leaf-two { top: 123px; left: 36%; width: 30px; height: 57px; background: #b5c6a9; transform: rotate(-29deg) scaleX(-1); }
-    .art-spark { position: absolute; top: 40px; left: 72%; color: #be9b57; font-size: 23px; }
-    .spark-two { top: 124px; left: 17%; color: #86a28a; font-size: 16px; }
-    .story-footer { margin: auto 0 0; color: #8a9b8b; font-size: 11px; }
+    .art-leaf { position: absolute; top: 111px; left: 47%; width: 42px; height: 75px; border: 7px solid #263943; border-radius: 11px; background: #62c8bc; transform: rotate(35deg); }
+    .leaf-two { top: 123px; left: 36%; width: 30px; height: 57px; border-radius: 9px; background: #ff827e; transform: rotate(-29deg); }
+    .art-spark { position: absolute; top: 40px; left: 72%; color: #a84742; font-size: 23px; }
+    .spark-two { top: 124px; left: 17%; color: #087c79; font-size: 16px; }
+    .story-footer { margin: auto 0 0; color: var(--muted); font-size: 11px; }
     .auth-form-wrap { display: grid; place-items: center; padding: 45px 28px; }
     .auth-form-card { width: min(100%, 385px); }
     .auth-form-card h2 { margin: 0; font-size: 29px; }
@@ -111,7 +111,7 @@ export class AuthPage {
   private readonly router = inject(Router);
   private readonly auth = inject(AuthService);
   readonly form = this.fb.nonNullable.group({
-    name: ['', Validators.required],
+    name: ['', this.isRegister ? Validators.required : []],
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(6)]],
   });
@@ -122,7 +122,13 @@ export class AuthPage {
 
   submit(): void {
     this.form.markAllAsTouched();
-    if (this.form.invalid) return;
+    if (
+      this.form.controls.email.invalid ||
+      this.form.controls.password.invalid ||
+      (this.isRegister && this.form.controls.name.invalid)
+    ) {
+      return;
+    }
     const { name, email, password } = this.form.getRawValue();
     if (this.isRegister) {
       this.auth.register(name.trim(), email.trim());

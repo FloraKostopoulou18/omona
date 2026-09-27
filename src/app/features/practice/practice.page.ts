@@ -29,7 +29,7 @@ import { ExerciseContainerComponent, ExerciseFeedbackComponent } from '../../sha
         <aside class="practice-aside surface-card">
           <span class="aside-symbol" aria-hidden="true">✳</span>
           <h2>Make it your own</h2>
-          <p>There’s no timer and no pressure. Every try helps Onoma understand what works for you.</p>
+          <p>There’s no timer and no pressure. Every try helps Mosaic understand what works for you.</p>
           <div class="aside-divider"></div>
           <span class="aside-label">TODAY'S REMINDER</span>
           <p class="reminder">Progress is built from practice, not perfection.</p>
@@ -52,7 +52,7 @@ import { ExerciseContainerComponent, ExerciseFeedbackComponent } from '../../sha
       background: #f4eee1; color: #b38f4b; }
     .practice-aside h2 { margin: 15px 0 7px; font-size: 15px; }
     .practice-aside p { margin: 0; color: #7f8a82; font-size: 11px; line-height: 1.65; }
-    .aside-divider { height: 1px; margin: 19px 0 14px; background: #edf0ec; }
+    .aside-divider { height: 1px; margin: 19px 0 14px; background: var(--line); }
     .aside-label { color: #a1aaa2; font-size: 9px; font-weight: 700; letter-spacing: .1em; }
     .practice-aside p.reminder { margin-top: 7px; color: #64766a; font-weight: 600; }
     @media (max-width: 900px) { .practice-layout { grid-template-columns: 1fr; } .practice-aside { display: none; } }

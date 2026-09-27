@@ -48,18 +48,18 @@ import { Activity } from '../../core/models/onoma.models';
     .activity-icon { display: grid; width: 54px; height: 54px; flex: 0 0 auto; place-items: center;
       border-radius: 17px; background: #f4e9dc; color: #9e7951; font: 700 20px 'Manrope', sans-serif; }
     .activity-copy { min-width: 0; }
-    .skill-tag { color: #648170; font-size: 11px; font-weight: 700; }
+    .skill-tag { color: var(--mosaic-indigo); font-size: 11px; font-weight: 700; }
     h2 { margin: 2px 0 5px; font-size: 21px; }
     .activity-copy p { margin: 0; color: #7d8981; font-size: 13px; }
-    .why-box { display: flex; gap: 11px; padding: 13px 15px; border-radius: 12px; background: #f7f8f5; }
-    .why-mark { color: #bd9b51; font-size: 18px; }
-    .why-box p { margin: 0; color: #727e75; font-size: 11px; line-height: 1.6; }
-    .why-box strong { color: #48574d; font-size: 11px; }
+    .why-box { display: flex; gap: 11px; padding: 13px 15px; border-radius: 12px; background: var(--hover-surface); }
+    .why-mark { color: var(--gold); font-size: 18px; }
+    .why-box p { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.6; }
+    .why-box strong { color: var(--ink); font-size: 11px; }
     .start-button { min-height: 45px; margin-top: 19px; padding-inline: 19px; font-size: 13px; }
     .difficulty { display: flex; align-items: center; gap: 9px; margin-top: 18px; color: #98a19a; font-size: 10px; }
     .difficulty-dots { display: flex; gap: 4px; }
-    .difficulty-dots i { width: 7px; height: 7px; border-radius: 50%; background: #e1e6e1; }
-    .difficulty-dots i.filled { background: #82a58d; }
+    .difficulty-dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--line); }
+    .difficulty-dots i.filled { background: var(--mosaic-violet); }
     @media (max-width: 640px) {
       .next-card { padding: 21px 19px; }
       .activity-content { gap: 13px; margin-top: 21px; }

@@ -8,9 +8,9 @@ import { AuthService, UserService } from '../../core/services/onoma.services';
   template: `
     <div class="app-shell">
       <aside class="sidebar" aria-label="Main navigation">
-        <a class="brand" routerLink="/dashboard" aria-label="Onoma home">
-          <span class="brand-mark" aria-hidden="true">o</span>
-          <span>onoma</span>
+        <a class="brand" routerLink="/dashboard" aria-label="Mosaic home">
+          <img class="brand-mark" src="/mosaic/mosaic-logo.png" alt="" />
+          <span>Mosaic</span>
         </a>
         <p class="nav-caption">YOUR SPACE</p>
         <nav class="primary-nav">
@@ -72,41 +72,40 @@ import { AuthService, UserService } from '../../core/services/onoma.services';
     .app-shell { min-height: 100vh; }
     .sidebar {
       position: fixed; inset: 0 auto 0 0; z-index: 3; display: flex; width: 246px;
-      flex-direction: column; padding: 29px 17px 20px; border-right: 1px solid #e9eeea;
-      background: #fff;
+      flex-direction: column; padding: 29px 17px 20px; border-right: 1px solid var(--line);
+      background: var(--paper);
     }
     .brand { display: flex; align-items: center; gap: 11px; margin: 0 0 48px 9px;
-      font: 800 23px/1 'Manrope', sans-serif; letter-spacing: -.06em; }
-    .brand-mark { display: grid; width: 32px; height: 32px; place-items: center; border-radius: 11px;
-      background: #477e68; color: white; font: 700 23px/1 'Manrope', sans-serif; }
-    .nav-caption { margin: 0 12px 12px; color: #a0aaa4; font-size: 10px; font-weight: 700; letter-spacing: .13em; }
+      color: var(--ink); font: 800 22px/1 'Manrope', sans-serif; letter-spacing: -.045em; }
+    .brand-mark { display: block; width: 34px; height: 34px; object-fit: contain; }
+    .nav-caption { margin: 0 12px 12px; color: var(--muted); font-size: 10px; font-weight: 700; letter-spacing: .13em; }
     .primary-nav { display: grid; gap: 5px; }
     .nav-link { display: flex; min-height: 46px; align-items: center; gap: 13px; padding: 0 13px;
-      border-radius: 11px; color: #737e78; font-size: 14px; font-weight: 600; transition: .15s ease; }
-    .nav-link:hover { background: #f6f8f5; color: #356b56; }
-    .nav-link.active { background: #eaf2ed; color: #356b56; }
+      border-radius: 11px; color: var(--muted); font-size: 14px; font-weight: 600; transition: .15s ease; }
+    .nav-link:hover { background: var(--hover-surface); color: var(--green-dark); }
+    .nav-link.active { background: var(--selection-surface); color: var(--selection-text); }
     .nav-icon { display: grid; width: 22px; place-items: center; font-size: 19px; line-height: 1; }
     .sidebar-note { display: flex; gap: 11px; margin: auto 1px 18px; padding: 14px 12px;
-      border-radius: 13px; background: #f7f8f5; color: #748078; font-size: 11px; line-height: 1.55; }
+      border-radius: 13px; background: var(--hover-surface); color: var(--muted); font-size: 11px; line-height: 1.55; }
     .sidebar-note p { margin: 0; }
-    .sidebar-note strong { color: #44544b; font-weight: 600; }
-    .note-spark { color: #c79f4c; font-size: 18px; }
+    .sidebar-note strong { color: var(--ink); font-weight: 600; }
+    .note-spark { color: var(--gold); font-size: 18px; }
     .sidebar-profile { display: flex; align-items: center; gap: 10px; padding: 12px 7px 2px;
-      border-top: 1px solid #edf0ed; }
+      border-top: 1px solid var(--line); }
     .avatar { display: grid; width: 35px; height: 35px; flex: 0 0 auto; place-items: center;
       border-radius: 50%; background: #f0e5d9; color: #785c42; font-size: 12px; font-weight: 700; }
     .profile-label { display: grid; gap: 1px; min-width: 0; }
-    .profile-label strong { overflow: hidden; color: #344139; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
-    .profile-label small { color: #9aa39d; font-size: 10px; }
-    .profile-arrow { margin-left: auto; color: #9aa39d; }
+    .profile-label strong { overflow: hidden; color: var(--ink); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+    .profile-label small { color: var(--muted); font-size: 10px; }
+    .profile-arrow { margin-left: auto; color: var(--muted); }
     .workspace { min-height: 100vh; margin-left: 246px; }
     .topbar { position: sticky; top: 0; z-index: 2; display: flex; height: 67px; align-items: center;
-      justify-content: space-between; padding: 0 42px; border-bottom: 1px solid #e9eeea;
-      background: rgb(247 248 245 / 92%); backdrop-filter: blur(12px); }
-    .topbar-message { display: flex; align-items: center; gap: 9px; color: #8a958e; font-size: 12px; }
-    .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #79a98e; }
+      justify-content: space-between; padding: 0 42px; border-bottom: 1px solid var(--line);
+      background: rgb(246 248 246 / 92%); backdrop-filter: blur(12px); }
+    .topbar-message { display: flex; align-items: center; gap: 9px; color: var(--muted); font-size: 12px; }
+    .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
     .topbar-user { display: flex; align-items: center; gap: 9px; border: 0; background: transparent;
-      color: #56635a; cursor: pointer; font-size: 12px; font-weight: 600; }
+      color: var(--muted); cursor: pointer; font-size: 12px; font-weight: 600; }
     .avatar-small { width: 31px; height: 31px; font-size: 11px; }
     .main-content { width: min(100%, 1160px); margin: 0 auto; padding: 37px 42px 64px; }
     .mobile-nav { display: none; }
@@ -124,11 +123,11 @@ import { AuthService, UserService } from '../../core/services/onoma.services';
       .topbar-user span:last-child { display: none; }
       .main-content { padding: 25px 17px 100px; }
       .mobile-nav { position: fixed; inset: auto 0 0; z-index: 4; display: grid; grid-template-columns: repeat(5, 1fr);
-        padding: 8px 5px max(8px, env(safe-area-inset-bottom)); border-top: 1px solid #e8ece9;
+        padding: 8px 5px max(8px, env(safe-area-inset-bottom)); border-top: 1px solid var(--line);
         background: rgb(255 255 255 / 97%); }
       .mobile-nav a { display: grid; min-height: 48px; place-content: center; justify-items: center; gap: 2px;
-        border-radius: 10px; color: #89938d; font-size: 18px; }
-      .mobile-nav a.active { background: #eaf2ed; color: #356b56; }
+        border-radius: 10px; color: var(--muted); font-size: 18px; }
+      .mobile-nav a.active { background: var(--selection-surface); color: var(--selection-text); }
       .mobile-nav small { font-size: 9px; font-weight: 600; }
     }
   `],

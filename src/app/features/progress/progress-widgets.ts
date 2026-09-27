@@ -14,8 +14,8 @@ import { LearnerSkill } from '../../core/models/onoma.models';
   styles: [`
     :host { display: block; }
     .bar-wrap { display: flex; align-items: center; gap: 11px; }
-    .bar-track { height: 8px; flex: 1; overflow: hidden; border-radius: 99px; background: #edf0ec; }
-    .bar-fill { height: 100%; border-radius: inherit; background: #638b70; }
+    .bar-track { height: 8px; flex: 1; overflow: hidden; border-radius: 99px; background: var(--line); }
+    .bar-fill { height: 100%; border-radius: inherit; background: var(--mosaic-indigo); }
     strong { min-width: 34px; color: #425047; font-size: 12px; text-align: right; }
   `],
 })
@@ -35,10 +35,10 @@ export class ProgressBarComponent {
     </article>
   `,
   styles: [`
-    .skill-card { padding: 17px 18px; border: 1px solid #edf0ed; border-radius: 14px; background: #fff; }
+    .skill-card { padding: 17px 18px; border: 1px solid var(--line); border-radius: 14px; background: var(--paper); }
     .skill-heading { display: flex; align-items: center; gap: 9px; margin-bottom: 13px; }
     .skill-heading h3 { margin: 0; color: #3d4a42; font-size: 14px; }
-    .skill-dot { width: 8px; height: 8px; border-radius: 50%; background: #82a58b; }
+    .skill-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--mosaic-indigo); }
     p { margin: 10px 0 0; color: #8b978e; font-size: 10px; }
   `],
 })
@@ -65,18 +65,18 @@ export class SkillCardComponent {
     </div>
   `,
   styles: [`
-    .chart-wrap { padding: 21px 20px 13px; border: 1px solid #edf0ed; border-radius: 15px; background: #fff; }
+    .chart-wrap { padding: 21px 20px 13px; border: 1px solid var(--line); border-radius: 15px; background: var(--paper); }
     .chart-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
     .chart-heading .eyebrow { margin-bottom: 3px; color: #9ba49d; font-size: 9px; }
     .chart-heading h3 { margin: 0; font-size: 15px; }
     .chart-key { display: flex; align-items: center; gap: 6px; color: #849087; font-size: 9px; }
-    .chart-key i { width: 7px; height: 7px; border-radius: 50%; background: #638b70; }
+    .chart-key i { width: 7px; height: 7px; border-radius: 50%; background: var(--mosaic-indigo); }
     svg { width: 100%; margin-top: 13px; overflow: visible; }
-    line { stroke: #edf0ed; stroke-width: 1; }
+    line { stroke: var(--line); stroke-width: 1; }
     svg text { fill: #a1aaa3; font: 8px 'DM Sans', sans-serif; }
-    .area { fill: #eaf2ed; opacity: .9; }
-    .trend { fill: none; stroke: #638b70; stroke-linecap: round; stroke-linejoin: round; stroke-width: 3; }
-    circle { fill: #638b70; stroke: #fff; stroke-width: 2; }
+    .area { fill: var(--selection-surface); opacity: .9; }
+    .trend { fill: none; stroke: var(--mosaic-indigo); stroke-linecap: round; stroke-linejoin: round; stroke-width: 3; }
+    circle { fill: var(--mosaic-indigo); stroke: var(--paper); stroke-width: 2; }
   `],
 })
 export class ProgressChartComponent {}
@@ -91,12 +91,12 @@ export class ProgressChartComponent {}
     </article>
   `,
   styles: [`
-    .achievement-card { display: flex; align-items: center; gap: 11px; padding: 12px; border: 1px solid #edf0ed; border-radius: 12px; background: #fff; }
+    .achievement-card { display: flex; align-items: center; gap: 11px; padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); }
     .achievement-icon { display: grid; width: 35px; height: 35px; flex: 0 0 auto; place-items: center; border-radius: 11px; background: #f4eee1; color: #a5874a; }
     .achievement-card > span:nth-child(2) { display: grid; gap: 2px; }
     strong { color: #49564d; font-size: 11px; }
     small { color: #97a098; font-size: 9px; }
-    .achievement-check { margin-left: auto; color: #72927a; font-size: 13px; }
+    .achievement-check { margin-left: auto; color: var(--mosaic-indigo); font-size: 13px; }
   `],
 })
 export class AchievementComponent {

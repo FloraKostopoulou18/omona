@@ -10,7 +10,7 @@ import { ExerciseContainerComponent, ExerciseFeedbackComponent } from '../../sha
   template: `
     <main class="assessment-page">
       <header class="assessment-header">
-        <a class="brand" routerLink="/dashboard"><span class="brand-mark" aria-hidden="true">o</span> onoma</a>
+        <a class="brand" routerLink="/dashboard"><img class="brand-mark" src="/mosaic/mosaic-logo.png" alt="" /> Mosaic</a>
         <a class="exit-link" routerLink="/dashboard">Save and leave</a>
       </header>
       <section class="assessment-main">
@@ -37,12 +37,12 @@ import { ExerciseContainerComponent, ExerciseFeedbackComponent } from '../../sha
     </main>
   `,
   styles: [`
-    :host { display: block; min-height: 100vh; background: #f7f8f5; }
+    :host { display: block; min-height: 100vh; background: var(--canvas); }
     .assessment-page { min-height: 100vh; }
     .assessment-header { display: flex; height: 70px; align-items: center; justify-content: space-between; padding: 0 6vw;
-      border-bottom: 1px solid #e8ece9; background: #fff; }
-    .brand { display: inline-flex; align-items: center; gap: 9px; font: 800 21px 'Manrope', sans-serif; letter-spacing: -.06em; }
-    .brand-mark { display: grid; width: 30px; height: 30px; place-items: center; border-radius: 10px; background: var(--green); color: #fff; }
+      border-bottom: 1px solid var(--line); background: var(--paper); }
+    .brand { display: inline-flex; align-items: center; gap: 10px; color: var(--ink); font: 800 21px 'Manrope', sans-serif; letter-spacing: -.045em; }
+    .brand-mark { display: block; width: 32px; height: 32px; object-fit: contain; }
     .exit-link { color: #829087; font-size: 12px; font-weight: 600; }
     .assessment-main { width: min(100% - 34px, 760px); margin: 0 auto; padding: 53px 0 60px; }
     .assessment-intro { max-width: 620px; }
@@ -50,8 +50,8 @@ import { ExerciseContainerComponent, ExerciseFeedbackComponent } from '../../sha
     .assessment-intro .page-subtitle { max-width: 570px; line-height: 1.7; }
     .step-progress { margin: 30px 0 23px; }
     .progress-caption { display: flex; justify-content: space-between; margin-bottom: 8px; color: #77847b; font-size: 11px; }
-    .assessment-skill { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; color: #617c69; font-size: 12px; font-weight: 700; }
-    .skill-dot { width: 7px; height: 7px; border-radius: 50%; background: #80a58a; }
+    .assessment-skill { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; color: var(--mosaic-indigo); font-size: 12px; font-weight: 700; }
+    .skill-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--mosaic-indigo); }
     .support-note { margin: 14px 0 0; color: #9aa39b; font-size: 10px; }
     @media (max-width: 640px) { .assessment-header { height: 59px; padding-inline: 19px; } .assessment-main { padding-top: 35px; } }
   `],

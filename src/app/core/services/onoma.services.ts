@@ -3,6 +3,7 @@ import { Inject, inject, Injectable, signal } from '@angular/core';
 import {
   Achievement,
   Activity,
+  AccessibilityPreferences,
   Exercise,
   ExerciseAttempt,
   LearnerProfile,
@@ -161,8 +162,13 @@ export class AuthService {
       ...user,
       name,
       email,
+      assessmentCompleted: false,
       profile: { ...user.profile, name },
     }));
+  }
+
+  completeAssessment(): void {
+    this.user.update((user) => ({ ...user, assessmentCompleted: true }));
   }
 
   logout(): void {
@@ -173,6 +179,7 @@ export class AuthService {
     id: 1,
     name: defaultProfile.name,
     email: 'alex@example.com',
+    assessmentCompleted: true,
     profile: defaultProfile,
   });
 
@@ -189,6 +196,7 @@ export class AuthService {
 export class UserService {
   private readonly learner = signal(defaultProfile);
   readonly profile = this.learner.asReadonly();
+  readonly fontSize = signal<AccessibilityPreferences['fontSize']>('comfortable');
 
   constructor(@Inject(DOCUMENT) private readonly document: Document) {}
 
@@ -201,10 +209,59 @@ export class UserService {
     const root = this.document.documentElement;
     root.dataset['theme'] = profile.preferences.theme;
     root.dataset['readingFont'] = profile.preferences.readingFont;
-    root.dataset['fontSize'] = profile.preferences.fontSize;
+    this.applyFontSize(profile.preferences.fontSize);
     root.dataset['letterSpacing'] = profile.preferences.letterSpacing;
     root.dataset['lineSpacing'] = profile.preferences.lineSpacing;
     root.dataset['reducedClutter'] = String(profile.preferences.reducedClutter);
+  }
+
+  applyFontSize(fontSize: AccessibilityPreferences['fontSize']): void {
+    const profileTextSizes: Record<
+      AccessibilityPreferences['fontSize'],
+      {
+        fieldLabel: string;
+        fieldHint: string;
+        toggleLabel: string;
+        toggleDescription: string;
+        sectionDescription: string;
+        previewLabel: string;
+      }
+    > = {
+      comfortable: {
+        fieldLabel: '13px',
+        fieldHint: '10px',
+        toggleLabel: '11px',
+        toggleDescription: '9px',
+        sectionDescription: '10px',
+        previewLabel: '9px',
+      },
+      large: {
+        fieldLabel: '15px',
+        fieldHint: '12px',
+        toggleLabel: '13px',
+        toggleDescription: '11px',
+        sectionDescription: '12px',
+        previewLabel: '11px',
+      },
+      'extra-large': {
+        fieldLabel: '17px',
+        fieldHint: '14px',
+        toggleLabel: '15px',
+        toggleDescription: '13px',
+        sectionDescription: '14px',
+        previewLabel: '13px',
+      },
+    };
+    const sizes = profileTextSizes[fontSize];
+    this.fontSize.set(fontSize);
+    const root = this.document.documentElement;
+    root.dataset['fontSize'] = fontSize;
+    root.style.setProperty('--profile-field-label-size', sizes.fieldLabel);
+    root.style.setProperty('--profile-field-hint-size', sizes.fieldHint);
+    root.style.setProperty('--profile-toggle-label-size', sizes.toggleLabel);
+    root.style.setProperty('--profile-toggle-description-size', sizes.toggleDescription);
+    root.style.setProperty('--profile-section-description-size', sizes.sectionDescription);
+    root.style.setProperty('--profile-preview-label-size', sizes.previewLabel);
   }
 }
 

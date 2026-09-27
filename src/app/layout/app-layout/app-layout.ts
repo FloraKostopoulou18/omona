@@ -36,7 +36,6 @@ import { AuthService, UserService } from '../../core/services/onoma.services';
             <strong>{{ name }}</strong>
             <small>Your learning space</small>
           </span>
-          <span class="profile-arrow" aria-hidden="true">↗</span>
         </a>
       </aside>
 
@@ -97,7 +96,6 @@ import { AuthService, UserService } from '../../core/services/onoma.services';
     .profile-label { display: grid; gap: 1px; min-width: 0; }
     .profile-label strong { overflow: hidden; color: var(--ink); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
     .profile-label small { color: var(--muted); font-size: 10px; }
-    .profile-arrow { margin-left: auto; color: var(--muted); }
     .workspace { min-height: 100vh; margin-left: 246px; }
     .topbar { position: sticky; top: 0; z-index: 2; display: flex; height: 67px; align-items: center;
       justify-content: space-between; padding: 0 42px; border-bottom: 1px solid var(--line);

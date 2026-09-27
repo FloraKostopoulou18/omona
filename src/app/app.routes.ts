@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard } from './core/guards/auth.guard';
+import { assessmentPendingGuard, authGuard } from './core/guards/auth.guard';
 import { AssessmentPage } from './features/assessment/assessment.page';
 import { AuthPage } from './features/auth/auth.page';
 import { DashboardPage } from './features/dashboard/dashboard.page';
@@ -15,7 +15,7 @@ export const routes: Routes = [
   { path: 'login', component: AuthPage, data: { mode: 'login' } },
   { path: 'register', component: AuthPage, data: { mode: 'register' } },
   { path: 'onboarding', component: OnboardingPage },
-  { path: 'assessment', component: AssessmentPage, canActivate: [authGuard] },
+  { path: 'assessment', component: AssessmentPage, canActivate: [authGuard, assessmentPendingGuard] },
   {
     path: '',
     component: AppLayout,

@@ -14,7 +14,9 @@ import { NextActivityComponent } from './next-activity.component';
           <h1 class="page-title">Good afternoon, {{ firstName }} <span aria-hidden="true">✳</span></h1>
           <p class="page-subtitle">A little practice today can take you a long way.</p>
         </div>
-        <a class="assessment-link" routerLink="/assessment"><span aria-hidden="true">＋</span> Start an assessment</a>
+        @if (!assessmentCompleted) {
+          <a class="assessment-link" routerLink="/assessment"><span aria-hidden="true">＋</span> Start an assessment</a>
+        }
       </header>
 
       <div class="dashboard-grid">
@@ -124,6 +126,10 @@ export class DashboardPage {
   private readonly exerciseService = inject(ExerciseService);
   readonly progress = this.progressService.progress;
   readonly activity = this.exerciseService.nextActivity();
+
+  get assessmentCompleted(): boolean {
+    return this.auth.currentUser.assessmentCompleted;
+  }
 
   get firstName(): string {
     return this.auth.currentUser.profile.name.split(/\s+/)[0] || 'there';

@@ -1,7 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { Exercise, ExerciseAttempt } from '../../core/models/onoma.models';
-import { AssessmentService } from '../../core/services/onoma.services';
+import { AssessmentService, AuthService } from '../../core/services/onoma.services';
 import { ExerciseContainerComponent, ExerciseFeedbackComponent } from '../../shared/exercise-container.component';
 
 @Component({
@@ -58,6 +58,7 @@ import { ExerciseContainerComponent, ExerciseFeedbackComponent } from '../../sha
 })
 export class AssessmentPage {
   private readonly assessmentService = inject(AssessmentService);
+  private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   readonly exercises = this.assessmentService.getAssessment();
   readonly index = signal(0);
@@ -68,6 +69,9 @@ export class AssessmentPage {
   onCompleted(attempt: ExerciseAttempt): void {
     this.lastAttempt.set(attempt);
     this.assessmentService.recordAttempt(attempt, this.exercise().skill);
+    if (this.index() === this.exercises.length - 1) {
+      this.auth.completeAssessment();
+    }
     this.feedback.set(true);
   }
 

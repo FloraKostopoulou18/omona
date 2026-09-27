@@ -1,17 +1,16 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { AccessibilityPreferences, isLearnerInterest, LEARNER_INTERESTS, LearnerInterest, LearnerProfile, ReadingFont } from '../../core/models/onoma.models';
+import { AccessibilityPreferences, LearnerProfile, ReadingFont } from '../../core/models/onoma.models';
 import { AuthService, UserService } from '../../core/services/onoma.services';
-import { InterestPickerComponent } from '../../shared/interest-picker.component';
 
 @Component({
   selector: 'app-onboarding-page',
-  imports: [ReactiveFormsModule, RouterLink, InterestPickerComponent],
+  imports: [ReactiveFormsModule, RouterLink],
   template: `
     <main class="onboarding-page">
       <header class="onboarding-header">
-        <a class="brand" routerLink="/dashboard" aria-label="Mosaic"><img class="brand-mark" src="/mosaic/mosaic-logo.png" alt="" /> Mosaic</a>
+        <a class="brand" routerLink="/dashboard" aria-label="Onoma"><span class="brand-mark" aria-hidden="true">o</span> onoma</a>
         <span>STEP {{ step() + 1 }} OF 4</span>
       </header>
       <section class="onboarding-content">
@@ -67,11 +66,12 @@ import { InterestPickerComponent } from '../../shared/interest-picker.component'
               </div>
             }
             @case (2) {
-              <app-interest-picker
-                [options]="interestOptions"
-                [selected]="form.controls.interests.value"
-                (selectedChange)="form.controls.interests.setValue($event)"
-              />
+              <label class="field">Interests <span class="field-hint">Separate each with a comma</span>
+                <input type="text" formControlName="interests" placeholder="Music, animals, stories..." />
+              </label>
+              <div class="interest-chips" aria-label="Ideas">
+                @for (interest of interestIdeas; track interest) { <span>{{ interest }}</span> }
+              </div>
             }
             @default {
               <div class="field-row">
@@ -117,16 +117,16 @@ import { InterestPickerComponent } from '../../shared/interest-picker.component'
     </main>
   `,
   styles: [`
-    :host { display: block; min-height: 100vh; background: var(--canvas); }
+    :host { display: block; min-height: 100vh; background: #f7f8f5; }
     .onboarding-page { min-height: 100vh; }
-    .onboarding-header { display: flex; height: 67px; align-items: center; justify-content: space-between; padding: 0 6vw; border-bottom: 1px solid var(--line); background: var(--paper); }
-    .brand { display: inline-flex; align-items: center; gap: 10px; color: var(--ink); font: 800 21px 'Manrope', sans-serif; letter-spacing: -.045em; }
-    .brand-mark { display: block; width: 32px; height: 32px; object-fit: contain; }
+    .onboarding-header { display: flex; height: 67px; align-items: center; justify-content: space-between; padding: 0 6vw; border-bottom: 1px solid #e8ece9; background: #fff; }
+    .brand { display: inline-flex; align-items: center; gap: 9px; color: var(--ink); font: 800 21px 'Manrope', sans-serif; letter-spacing: -.06em; }
+    .brand-mark { display: grid; width: 30px; height: 30px; place-items: center; border-radius: 10px; background: var(--green); color: #fff; }
     .onboarding-header > span { color: #94a098; font-size: 10px; font-weight: 700; letter-spacing: .08em; }
     .onboarding-content { width: min(100% - 34px, 530px); margin: 0 auto; padding: 42px 0 50px; }
     .onboarding-progress { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; margin-bottom: 35px; }
     .onboarding-progress span { height: 4px; border-radius: 9px; background: #e4e9e4; }
-    .onboarding-progress span.current { background: var(--primary-action); }
+    .onboarding-progress span.current { background: #6b977a; }
     .onboarding-content > .page-subtitle { margin-bottom: 25px; line-height: 1.6; }
     .onboarding-content > .eyebrow { margin-bottom: 9px; }
     .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 13px; }
@@ -139,16 +139,18 @@ import { InterestPickerComponent } from '../../shared/interest-picker.component'
     .choice-list { display: grid; gap: 9px; }
     .choice-row { display: flex; min-height: 51px; align-items: center; gap: 12px; padding: 0 13px; border: 1px solid #e3e9e4; border-radius: 11px; background: #fff; color: #556259; cursor: pointer; font-size: 13px; }
     .choice-row.chosen { border-color: #77a084; background: #f3f7f3; color: #365b45; }
-    .choice-row input { accent-color: var(--selection-control); }
-    .choice-check { margin-left: auto; color: var(--selection-control); opacity: 0; }
+    .choice-row input { accent-color: #477e68; }
+    .choice-check { margin-left: auto; color: #477e68; opacity: 0; }
     .chosen .choice-check { opacity: 1; }
+    .interest-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: -3px; }
+    .interest-chips span { padding: 6px 11px; border-radius: 99px; background: #edf3ed; color: #6b806e; font-size: 10px; }
     .toggle-list { overflow: hidden; border: 1px solid #e5ebe6; border-radius: 12px; background: #fff; }
-    .toggle-list label { display: flex; min-height: 58px; align-items: center; justify-content: space-between; gap: 12px; padding: 9px 14px; border-bottom: 1px solid var(--line); cursor: pointer; }
+    .toggle-list label { display: flex; min-height: 58px; align-items: center; justify-content: space-between; gap: 12px; padding: 9px 14px; border-bottom: 1px solid #edf0ed; cursor: pointer; }
     .toggle-list label:last-child { border-bottom: 0; }
     .toggle-list label span { display: grid; }
     .toggle-list strong { color: #46534a; font-size: 12px; }
     .toggle-list small { color: #9aa39c; font-size: 10px; }
-    .toggle-list input { width: 17px; height: 17px; accent-color: var(--selection-control); }
+    .toggle-list input { width: 17px; height: 17px; accent-color: #477e68; }
     .form-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px; }
     .gentle-note { margin: 24px 0 0; color: #99a39b; font-size: 10px; text-align: center; }
     @media (max-width: 540px) { .onboarding-header { height: 59px; padding-inline: 19px; } .onboarding-content { padding-top: 29px; } .field-row { grid-template-columns: 1fr; gap: 0; } }
@@ -160,23 +162,19 @@ export class OnboardingPage {
   private readonly router = inject(Router);
   readonly step = signal(0);
   readonly goals = ['Read faster', 'Read words with confidence', 'Understand what I read', 'Spelling', 'General reading support', 'I’m not sure yet'];
-  readonly interestOptions = LEARNER_INTERESTS;
+  readonly interestIdeas = ['Football', 'Games', 'Music', 'Animals', 'Space', 'Stories'];
   readonly form = new FormGroup({
     name: new FormControl(this.auth.currentUser.profile.name, { nonNullable: true, validators: [Validators.required] }),
     ageGroup: new FormControl(this.auth.currentUser.profile.ageGroup, { nonNullable: true }),
     language: new FormControl(this.auth.currentUser.profile.preferredLanguage, { nonNullable: true }),
     goal: new FormControl(this.auth.currentUser.profile.learningGoals[0] ?? this.goals[0], { nonNullable: true }),
-    interests: new FormControl<LearnerInterest[]>(
-      this.auth.currentUser.profile.interests.filter(isLearnerInterest),
-      { nonNullable: true },
-    ),
+    interests: new FormControl(this.auth.currentUser.profile.interests.join(', '), { nonNullable: true }),
     fontSize: new FormControl<AccessibilityPreferences['fontSize']>('comfortable', { nonNullable: true }),
     readingFont: new FormControl<ReadingFont>('default', { nonNullable: true }),
     letterSpacing: new FormControl<AccessibilityPreferences['letterSpacing']>('standard', { nonNullable: true }),
     lineSpacing: new FormControl<AccessibilityPreferences['lineSpacing']>('relaxed', { nonNullable: true }),
     theme: new FormControl<AccessibilityPreferences['theme']>('light', { nonNullable: true }),
     textToSpeech: new FormControl(this.auth.currentUser.profile.preferences.textToSpeech, { nonNullable: true }),
-    audioInstructions: new FormControl(true, { nonNullable: true }),
     currentLineHighlight: new FormControl(true, { nonNullable: true }),
     reducedClutter: new FormControl(false, { nonNullable: true }),
   });
@@ -193,8 +191,8 @@ export class OnboardingPage {
   get previewSize(): string {
     const sizes: Record<AccessibilityPreferences['fontSize'], string> = {
       comfortable: '14px',
-      large: '18px',
-      'extra-large': '22px',
+      large: '16px',
+      'extra-large': '18px',
     };
     return sizes[this.form.controls.fontSize.value];
   }
@@ -242,7 +240,7 @@ export class OnboardingPage {
       ageGroup: values.ageGroup,
       preferredLanguage: values.language,
       learningGoals: [values.goal],
-      interests: values.interests,
+      interests: values.interests.split(',').map((interest) => interest.trim()).filter(Boolean),
       preferences: {
         ...this.auth.currentUser.profile.preferences,
         readingFont: values.readingFont,
@@ -251,7 +249,6 @@ export class OnboardingPage {
         lineSpacing: values.lineSpacing,
         theme: values.theme,
         textToSpeech: values.textToSpeech,
-        audioInstructions: values.audioInstructions,
         currentLineHighlight: values.currentLineHighlight,
         reducedClutter: values.reducedClutter,
       },

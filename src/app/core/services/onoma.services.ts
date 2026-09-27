@@ -37,7 +37,6 @@ const defaultProfile: LearnerProfile = {
     letterSpacing: 'standard',
     lineSpacing: 'relaxed',
     textToSpeech: false,
-    audioInstructions: true,
     currentLineHighlight: true,
     reducedClutter: false,
     theme: 'light',

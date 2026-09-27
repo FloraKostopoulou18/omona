@@ -9,6 +9,34 @@ export type ExerciseType =
 export type ActivityType = 'exercise' | 'real-world';
 export type ExerciseMode = 'assessment' | 'practice' | 'real-world';
 export type ReadingFont = 'default' | 'lexend' | 'opendyslexic';
+export type LearnerInterest =
+  | 'Animals'
+  | 'Art & crafts'
+  | 'Books & stories'
+  | 'Cooking & food'
+  | 'Dance'
+  | 'Games & puzzles'
+  | 'Music'
+  | 'Nature'
+  | 'Science & space'
+  | 'Sports'
+  | 'Technology'
+  | 'Travel';
+
+export const LEARNER_INTERESTS = [
+  'Animals',
+  'Art & crafts',
+  'Books & stories',
+  'Cooking & food',
+  'Dance',
+  'Games & puzzles',
+  'Music',
+  'Nature',
+  'Science & space',
+  'Sports',
+  'Technology',
+  'Travel',
+] as const satisfies readonly LearnerInterest[];
 
 export interface AccessibilityPreferences {
   readingFont: ReadingFont;

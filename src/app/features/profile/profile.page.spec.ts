@@ -45,4 +45,27 @@ describe('ProfilePage', () => {
 
     expect(TestBed.inject(UserService).profile().preferences.fontSize).toBe('extra-large');
   });
+
+  it('updates the app font and preview when returning from OpenDyslexic to Default', async () => {
+    const fixture = TestBed.createComponent(ProfilePage);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const font = fixture.nativeElement.querySelector(
+      'select[formControlName="readingFont"]',
+    ) as HTMLSelectElement;
+    const preview = fixture.nativeElement.querySelector('.reading-preview') as HTMLElement;
+
+    font.value = 'opendyslexic';
+    font.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+    expect(preview.style.getPropertyValue('--reading-font-family')).toBe("'OpenDyslexic', sans-serif");
+    expect(document.documentElement.style.getPropertyValue('--reading-font-family')).toBe("'OpenDyslexic', sans-serif");
+
+    font.value = 'default';
+    font.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+    expect(preview.style.getPropertyValue('--reading-font-family')).toBe("'DM Sans', sans-serif");
+    expect(document.documentElement.style.getPropertyValue('--reading-font-family')).toBe("'DM Sans', sans-serif");
+  });
 });

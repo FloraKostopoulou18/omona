@@ -51,6 +51,7 @@
   --reader-prompt-size: 24px;
   --reader-choice-size: 14px;
   --reader-support-size: 11px;
+  --reading-font-family: 'DM Sans', sans-serif;
   font-family: 'DM Sans', sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -246,14 +247,9 @@ html[data-font-size='extra-large'] {
   --reader-support-size: 15px;
 }
 
-html[data-reading-font='lexend'] body,
-html[data-reading-font='lexend'] body * {
-  font-family: 'Lexend', sans-serif;
-}
-
-html[data-reading-font='opendyslexic'] body,
-html[data-reading-font='opendyslexic'] body * {
-  font-family: 'OpenDyslexic', sans-serif;
+body,
+body * {
+  font-family: var(--reading-font-family) !important;
 }
 
 html[data-letter-spacing='wide'] {

@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { afterEach, vi } from 'vitest';
 import { Exercise, ExerciseAttempt } from '../core/models/onoma.models';
 import { UserService } from '../core/services/onoma.services';
 import { ExerciseContainerComponent } from './exercise-container.component';
@@ -17,6 +18,18 @@ const sampleExercise: Exercise = {
 };
 
 describe('ExerciseContainerComponent', () => {
+  let originalSpeechSynthesis: PropertyDescriptor | undefined;
+
+  afterEach(() => {
+    if (originalSpeechSynthesis) {
+      Object.defineProperty(window, 'speechSynthesis', originalSpeechSynthesis);
+    } else {
+      Reflect.deleteProperty(window, 'speechSynthesis');
+    }
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+  });
+
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [ExerciseContainerComponent],
@@ -82,5 +95,55 @@ describe('ExerciseContainerComponent', () => {
     expect(prompt.style.fontSize).toBe('36px');
     expect(answer.style.fontSize).toBe('22px');
     expect(reassurance.style.fontSize).toBe('15px');
+  });
+
+  it('reads the exercise prompt aloud when text-to-speech is enabled', async () => {
+    originalSpeechSynthesis = Object.getOwnPropertyDescriptor(window, 'speechSynthesis');
+    const speech = {
+      cancel: vi.fn(),
+      speak: vi.fn(),
+    };
+    Object.defineProperty(window, 'speechSynthesis', {
+      configurable: true,
+      value: speech,
+    });
+    vi.stubGlobal(
+      'SpeechSynthesisUtterance',
+      class {
+        lang = '';
+        rate = 1;
+        onstart: (() => void) | null = null;
+        onend: (() => void) | null = null;
+        onerror: (() => void) | null = null;
+
+        constructor(readonly text: string) {}
+      },
+    );
+
+    const users = TestBed.inject(UserService);
+    users.save({
+      ...users.profile(),
+      preferences: { ...users.profile().preferences, textToSpeech: true },
+    });
+    const fixture = TestBed.createComponent(ExerciseContainerComponent);
+    fixture.componentRef.setInput('exercise', {
+      ...sampleExercise,
+      content: { ...sampleExercise.content, instruction: 'Read this carefully.' },
+    });
+    fixture.componentRef.setInput('mode', 'practice');
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const listen = fixture.nativeElement.querySelector('.audio-button') as HTMLButtonElement;
+    expect(listen).not.toBeNull();
+    listen.click();
+
+    expect(speech.cancel).toHaveBeenCalledOnce();
+    expect(speech.speak).toHaveBeenCalledOnce();
+    expect(speech.speak.mock.calls[0][0]).toMatchObject({
+      text: 'Read this carefully. Which word rhymes with “day”?',
+      lang: 'en-US',
+      rate: 0.9,
+    });
   });
 });

@@ -76,7 +76,7 @@ import { AuthService, UserService } from '../../core/services/onoma.services';
             @default {
               <div class="field-row">
                 <label class="field">Reading font
-                  <select formControlName="readingFont">
+                  <select formControlName="readingFont" (change)="applyReadingFont()">
                     <option value="default">Default</option><option value="lexend">Lexend</option><option value="opendyslexic">OpenDyslexic</option>
                   </select>
                 </label>
@@ -93,7 +93,7 @@ import { AuthService, UserService } from '../../core/services/onoma.services';
                   <select formControlName="letterSpacing"><option value="standard">Standard</option><option value="wide">Wide</option><option value="wider">Wider</option></select>
                 </label>
               </div>
-              <div class="reading-preview" [style.font-family]="previewFont" [style.font-size]="previewSize" [style.letter-spacing]="previewLetterSpacing" [style.line-height]="previewLineHeight">
+              <div class="reading-preview" [style.--reading-font-family]="previewFont" [style.font-size]="previewSize" [style.letter-spacing]="previewLetterSpacing" [style.line-height]="previewLineHeight">
                 <span>PREVIEW</span>
                 <p>Small steps make a difference. Read at a pace that feels comfortable for you.</p>
               </div>
@@ -186,6 +186,10 @@ export class OnboardingPage {
       opendyslexic: "'OpenDyslexic', sans-serif",
     };
     return fonts[this.form.controls.readingFont.value];
+  }
+
+  applyReadingFont(): void {
+    this.users.applyReadingFont(this.form.controls.readingFont.value);
   }
 
   get previewSize(): string {

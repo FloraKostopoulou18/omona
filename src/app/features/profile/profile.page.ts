@@ -37,14 +37,14 @@ import { AuthService, UserService } from '../../core/services/onoma.services';
           <div class="profile-heading"><span class="profile-icon lavender" aria-hidden="true">Aa</span><div><h2>Reading preferences</h2><p>Adjust the way content looks and sounds.</p></div></div>
           <div class="profile-fields">
             <div class="field-row">
-              <label class="field">Reading font<select formControlName="readingFont"><option value="default">Default</option><option value="lexend">Lexend</option><option value="opendyslexic">OpenDyslexic</option></select></label>
+              <label class="field">Reading font<select formControlName="readingFont" (change)="applyReadingFont()"><option value="default">Default</option><option value="lexend">Lexend</option><option value="opendyslexic">OpenDyslexic</option></select></label>
               <label class="field">Text size <span class="field-hint">Also adjusts exercise text</span><select formControlName="fontSize" (change)="applyFontSize()"><option value="comfortable">Comfortable</option><option value="large">Large</option><option value="extra-large">Extra large</option></select></label>
             </div>
             <div class="field-row">
               <label class="field">Line spacing<select formControlName="lineSpacing"><option value="standard">Standard</option><option value="relaxed">Relaxed</option><option value="wide">Wide</option></select></label>
               <label class="field">Letter spacing<select formControlName="letterSpacing"><option value="standard">Standard</option><option value="wide">Wide</option><option value="wider">Wider</option></select></label>
             </div>
-            <div class="reading-preview" [style.font-family]="previewFont" [style.font-size]="previewSize" [style.letter-spacing]="previewLetterSpacing" [style.line-height]="previewLineHeight">
+            <div class="reading-preview" [style.--reading-font-family]="previewFont" [style.font-size]="previewSize" [style.letter-spacing]="previewLetterSpacing" [style.line-height]="previewLineHeight">
               <span>PREVIEW</span>
               <p>Small steps make a difference. Read at a pace that feels comfortable for you.</p>
             </div>
@@ -161,6 +161,10 @@ export class ProfilePage {
 
   applyFontSize(): void {
     this.users.applyFontSize(this.form.controls.fontSize.value);
+  }
+
+  applyReadingFont(): void {
+    this.users.applyReadingFont(this.form.controls.readingFont.value);
   }
 
   save(): void {

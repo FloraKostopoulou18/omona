@@ -208,11 +208,22 @@ export class UserService {
   apply(profile: LearnerProfile): void {
     const root = this.document.documentElement;
     root.dataset['theme'] = profile.preferences.theme;
-    root.dataset['readingFont'] = profile.preferences.readingFont;
+    this.applyReadingFont(profile.preferences.readingFont);
     this.applyFontSize(profile.preferences.fontSize);
     root.dataset['letterSpacing'] = profile.preferences.letterSpacing;
     root.dataset['lineSpacing'] = profile.preferences.lineSpacing;
     root.dataset['reducedClutter'] = String(profile.preferences.reducedClutter);
+  }
+
+  applyReadingFont(readingFont: AccessibilityPreferences['readingFont']): void {
+    const fonts: Record<AccessibilityPreferences['readingFont'], string> = {
+      default: "'DM Sans', sans-serif",
+      lexend: "'Lexend', sans-serif",
+      opendyslexic: "'OpenDyslexic', sans-serif",
+    };
+    const root = this.document.documentElement;
+    root.dataset['readingFont'] = readingFont;
+    root.style.setProperty('--reading-font-family', fonts[readingFont]);
   }
 
   applyFontSize(fontSize: AccessibilityPreferences['fontSize']): void {

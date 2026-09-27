@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, input, output, signal } from '@angular/core';
+import { Component, computed, DestroyRef, effect, inject, input, output, signal } from '@angular/core';
 import { Exercise, ExerciseAttempt, ExerciseMode } from '../core/models/onoma.models';
 import { UserService } from '../core/services/onoma.services';
 
@@ -14,7 +14,20 @@ import { UserService } from '../core/services/onoma.services';
             @default { A moment to practice }
           }
         </span>
+        @if (users.profile().preferences.textToSpeech) {
+          @if (audioSupported) {
+            <button class="audio-button" type="button" (click)="readPrompt()" [attr.aria-pressed]="speechSpeaking()">
+              {{ speechSpeaking() ? 'Stop listening' : 'Listen' }}
+              <span aria-hidden="true">{{ speechSpeaking() ? '■' : '▶' }}</span>
+            </button>
+          } @else {
+            <span class="audio-unavailable" role="status">Speech playback is not available in this browser.</span>
+          }
+        }
       </div>
+      @if (speechStatus()) {
+        <p class="speech-status" role="status">{{ speechStatus() }}</p>
+      }
       @if (exercise().content.instruction) {
         <p class="instruction">{{ exercise().content.instruction }}</p>
       }
@@ -77,6 +90,7 @@ import { UserService } from '../core/services/onoma.services';
       border: 1px solid var(--line); border-radius: 9px; background: var(--paper); color: var(--muted); cursor: pointer; font-size: 11px; }
     .audio-button:hover { background: var(--hover-surface); }
     .audio-unavailable { color: #929d95; font-size: 10px; }
+    .speech-status { margin: 8px 0 0; color: var(--muted); font-size: 11px; }
     .instruction { margin: 22px 0 5px; color: #8a958e; font-size: calc(var(--reader-support-size, 11px) + 1px); }
     .prompt, .prompt-lines { max-width: 570px; margin: 22px 0 24px; color: #27343b; font-size: var(--reader-prompt-size, clamp(19px, 2.2vw, 25px)); line-height: 1.45; white-space: pre-line; }
     .instruction + .prompt, .instruction + .prompt-lines { margin-top: 5px; }
@@ -130,6 +144,9 @@ export class ExerciseContainerComponent {
     const sizes = { comfortable: '11px', large: '13px', 'extra-large': '15px' };
     return sizes[this.users.fontSize()];
   });
+  readonly speechSpeaking = signal(false);
+  readonly speechStatus = signal('');
+  private readonly destroyRef = inject(DestroyRef);
   private startedAt = Date.now();
   readonly audioSupported = typeof window !== 'undefined' && 'speechSynthesis' in window;
 
@@ -139,6 +156,9 @@ export class ExerciseContainerComponent {
       this.selected.set(null);
       this.currentLine.set(0);
       this.startedAt = Date.now();
+    });
+    this.destroyRef.onDestroy(() => {
+      if (this.audioSupported) window.speechSynthesis?.cancel();
     });
   }
 
@@ -163,13 +183,43 @@ export class ExerciseContainerComponent {
   }
 
   readPrompt(): void {
-    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
-    window.speechSynthesis.cancel();
-    window.speechSynthesis.speak(
-      new SpeechSynthesisUtterance(
-        `${this.exercise().content.instruction ?? ''} ${this.exercise().content.prompt}`,
-      ),
-    );
+    if (!this.audioSupported) {
+      this.speechStatus.set('Speech playback is not available in this browser.');
+      return;
+    }
+
+    if (this.speechSpeaking()) {
+      window.speechSynthesis.cancel();
+      this.speechSpeaking.set(false);
+      this.speechStatus.set('Speech stopped.');
+      return;
+    }
+
+    const text = [this.exercise().content.instruction, this.exercise().content.prompt]
+      .filter((part): part is string => Boolean(part?.trim()))
+      .join(' ');
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = this.users.profile().preferredLanguage === 'Spanish' ? 'es-ES' : 'en-US';
+    utterance.rate = 0.9;
+    utterance.onstart = () => {
+      this.speechSpeaking.set(true);
+      this.speechStatus.set('');
+    };
+    utterance.onend = () => this.speechSpeaking.set(false);
+    utterance.onerror = () => {
+      this.speechSpeaking.set(false);
+      this.speechStatus.set('Speech playback failed. Please try again.');
+    };
+
+    this.speechStatus.set('');
+    try {
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(utterance);
+      this.speechSpeaking.set(true);
+    } catch {
+      this.speechSpeaking.set(false);
+      this.speechStatus.set('Speech playback failed. Please try again.');
+    }
   }
 }
 

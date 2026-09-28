@@ -20,10 +20,11 @@ Open `http://localhost:4200/`. The dashboard is the default demo route. Registra
 - `src/app/features` contains route-level feature pages.
 - `src/app/shared` contains the reusable exercise interaction and feedback components.
 - `src/app/layout` contains the authenticated application shell and responsive navigation.
+- `docs/backend-api-contract.md` specifies the proposed Django/PostgreSQL models and REST payloads for backend integration.
 
 The mock session starts authenticated to make the dashboard immediately explorable. Use **Sign out** from Profile to try the login and registration screens.
 Reading preferences include self-hosted Lexend and OpenDyslexic fonts, adjustable text size and spacing, and can be changed during onboarding or later in Profile.
-Learner interests are selected from a shared, curated list in onboarding and Profile rather than entered as free text.
+The shared curated interest picker is available in `src/app/shared`; onboarding and Profile currently accept comma-separated interest text and should be switched to the picker when connecting the backend.
 
 ## Build and test
 

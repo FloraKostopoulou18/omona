@@ -1,38 +1,55 @@
 import { Component, inject } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
-import { AccessibilityPreferences, LearnerProfile, ReadingFont } from '../../core/models/onoma.models';
+import { ActivatedRoute, Router } from '@angular/router';
+import {
+  AccessibilityPreferences,
+  LEARNER_INTERESTS,
+  LearnerInterest,
+  LearnerProfile,
+  normalizeLearnerInterests,
+  ReadingFont,
+} from '../../core/models/onoma.models';
 import { AuthService, UserService } from '../../core/services/onoma.services';
+import { InterestPickerComponent } from '../../shared/interest-picker.component';
 
 @Component({
   selector: 'app-profile-page',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, InterestPickerComponent],
   template: `
     <section class="page">
       <header class="page-header">
-        <p class="eyebrow">YOUR SPACE</p>
-        <h1 class="page-title">Your learning, your way.</h1>
-        <p class="page-subtitle">Update your details and make your space feel right for you.</p>
+        @if (afterAssessment) {
+          <p class="eyebrow">MAKE IT COMFORTABLE</p>
+          <h1 class="page-title">Choose what feels right for you.</h1>
+          <p class="page-subtitle">Your starting point is set. Adjust how Mosaic looks and sounds while you learn. You can change these settings any time in your profile.</p>
+        } @else {
+          <p class="eyebrow">YOUR SPACE</p>
+          <h1 class="page-title">Your learning, your way.</h1>
+          <p class="page-subtitle">Update your details and make your space feel right for you.</p>
+        }
       </header>
       <form [formGroup]="form" (ngSubmit)="save()" class="profile-form">
-        <section class="profile-section surface-card">
-          <div class="profile-heading"><span class="profile-icon" aria-hidden="true">○</span><div><h2>About you</h2><p>The basics that help make your learning personal.</p></div></div>
-          <div class="profile-fields">
-            <label class="field">Name<input type="text" formControlName="name" autocomplete="name" /></label>
-            <label class="field">Email<input type="email" [value]="email" disabled /></label>
-            <div class="field-row">
+        @if (!afterAssessment) {
+          <section class="profile-section surface-card">
+            <div class="profile-heading"><span class="profile-icon" aria-hidden="true">○</span><div><h2>About you</h2><p>The basics that help make your learning personal.</p></div></div>
+            <div class="profile-fields">
+              <label class="field">Name<input type="text" formControlName="name" autocomplete="name" /></label>
+              <label class="field">Email<input type="email" [value]="email" disabled /></label>
               <label class="field">Age group<select formControlName="ageGroup"><option>Under 12</option><option>12–15</option><option>16–18</option><option>19+</option></select></label>
-              <label class="field">Preferred language<select formControlName="language"><option>English</option><option>Spanish</option><option>Other</option></select></label>
             </div>
-          </div>
-        </section>
-        <section class="profile-section surface-card">
-          <div class="profile-heading"><span class="profile-icon warm" aria-hidden="true">✳</span><div><h2>Your interests & goals</h2><p>We use these to make activities more relevant.</p></div></div>
-          <div class="profile-fields">
-            <label class="field">Learning focus<select formControlName="goal"><option>Reading faster</option><option>Reading words with confidence</option><option>Understanding texts</option><option>Spelling</option><option>General reading support</option><option>I'm not sure yet</option></select></label>
-            <label class="field">Interests <span class="field-hint">Separate each with a comma</span><input type="text" formControlName="interests" /></label>
-          </div>
-        </section>
+          </section>
+          <section class="profile-section surface-card">
+            <div class="profile-heading"><span class="profile-icon warm" aria-hidden="true">✳</span><div><h2>Your interests & goals</h2><p>We use these to make activities more relevant.</p></div></div>
+            <div class="profile-fields">
+              <label class="field">Learning focus<select formControlName="goal"><option>Reading faster</option><option>Reading words with confidence</option><option>Understanding texts</option><option>Spelling</option><option>General reading support</option><option>I'm not sure yet</option></select></label>
+              <app-interest-picker
+                [options]="interestOptions"
+                [selected]="form.controls.interests.value"
+                (selectedChange)="form.controls.interests.setValue($event)"
+              />
+            </div>
+          </section>
+        }
         <section class="profile-section surface-card">
           <div class="profile-heading"><span class="profile-icon lavender" aria-hidden="true">Aa</span><div><h2>Reading preferences</h2><p>Adjust the way content looks and sounds.</p></div></div>
           <div class="profile-fields">
@@ -57,11 +74,18 @@ import { AuthService, UserService } from '../../core/services/onoma.services';
           </div>
         </section>
         <div class="form-footer">
-          @if (saved) { <span class="save-confirmation" role="status">Your preferences are saved.</span> }
-          <button class="primary-button" type="submit">Save changes <span aria-hidden="true">→</span></button>
+          @if (saved && !afterAssessment) { <span class="save-confirmation" role="status">Your preferences are saved.</span> }
+          @if (afterAssessment) {
+            <button class="text-button" type="button" (click)="continueToDashboard()">Skip for now</button>
+            <button class="primary-button" type="submit">Save preferences and continue <span aria-hidden="true">→</span></button>
+          } @else {
+            <button class="primary-button" type="submit">Save changes <span aria-hidden="true">→</span></button>
+          }
         </div>
       </form>
-      <div class="logout-row"><span>Ready to take a break?</span><button class="text-button" type="button" (click)="logout()">Sign out</button></div>
+      @if (!afterAssessment) {
+        <div class="logout-row"><span>Ready to take a break?</span><button class="text-button" type="button" (click)="logout()">Sign out</button></div>
+      }
     </section>
   `,
   styles: [`
@@ -105,14 +129,19 @@ export class ProfilePage {
   private readonly auth = inject(AuthService);
   private readonly users = inject(UserService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+  readonly afterAssessment = this.route.snapshot.queryParamMap.get('afterAssessment') === 'true';
+  readonly interestOptions = LEARNER_INTERESTS;
   saved = false;
   readonly email = this.auth.currentUser.email;
   readonly form = new FormGroup({
     name: new FormControl(this.auth.currentUser.profile.name, { nonNullable: true, validators: [Validators.required] }),
     ageGroup: new FormControl(this.auth.currentUser.profile.ageGroup, { nonNullable: true }),
-    language: new FormControl(this.auth.currentUser.profile.preferredLanguage, { nonNullable: true }),
     goal: new FormControl(this.auth.currentUser.profile.learningGoals[0] ?? 'General reading support', { nonNullable: true }),
-    interests: new FormControl(this.auth.currentUser.profile.interests.join(', '), { nonNullable: true }),
+    interests: new FormControl<LearnerInterest[]>(
+      normalizeLearnerInterests(this.auth.currentUser.profile.interests),
+      { nonNullable: true },
+    ),
     readingFont: new FormControl<ReadingFont>(this.auth.currentUser.profile.preferences.readingFont, { nonNullable: true }),
     fontSize: new FormControl<AccessibilityPreferences['fontSize']>(this.auth.currentUser.profile.preferences.fontSize, { nonNullable: true }),
     letterSpacing: new FormControl<AccessibilityPreferences['letterSpacing']>(this.auth.currentUser.profile.preferences.letterSpacing, { nonNullable: true }),
@@ -169,29 +198,44 @@ export class ProfilePage {
 
   save(): void {
     this.form.markAllAsTouched();
-    if (this.form.invalid) return;
+    if (!this.afterAssessment && this.form.invalid) return;
     const value = this.form.getRawValue();
-    const profile: LearnerProfile = {
-      ...this.auth.currentUser.profile,
-      name: value.name.trim(),
-      ageGroup: value.ageGroup,
-      preferredLanguage: value.language,
-      learningGoals: [value.goal],
-      interests: value.interests.split(',').map((interest) => interest.trim()).filter(Boolean),
-      preferences: {
-        readingFont: value.readingFont,
-        fontSize: value.fontSize,
-        letterSpacing: value.letterSpacing,
-        lineSpacing: value.lineSpacing,
-        textToSpeech: value.textToSpeech,
-        currentLineHighlight: value.currentLineHighlight,
-        reducedClutter: value.reducedClutter,
-        theme: value.theme,
-      },
+    const currentProfile = this.auth.currentUser.profile;
+    const preferences: AccessibilityPreferences = {
+      readingFont: value.readingFont,
+      fontSize: value.fontSize,
+      letterSpacing: value.letterSpacing,
+      lineSpacing: value.lineSpacing,
+      textToSpeech: value.textToSpeech,
+      currentLineHighlight: value.currentLineHighlight,
+      reducedClutter: value.reducedClutter,
+      theme: value.theme,
     };
+    const profile: LearnerProfile = this.afterAssessment
+      ? {
+          ...currentProfile,
+          preferences,
+        }
+      : {
+          ...currentProfile,
+          name: value.name.trim(),
+          ageGroup: value.ageGroup,
+          learningGoals: [value.goal],
+          interests: value.interests,
+          preferences,
+        };
     this.users.save(profile);
     this.auth.updateProfile(profile);
+    if (this.afterAssessment) {
+      this.continueToDashboard();
+      return;
+    }
     this.saved = true;
+  }
+
+  continueToDashboard(): void {
+    this.users.apply(this.auth.currentUser.profile);
+    void this.router.navigate(['/dashboard']);
   }
 
   logout(): void {

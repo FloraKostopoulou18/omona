@@ -1,12 +1,20 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { AccessibilityPreferences, LearnerProfile, ReadingFont } from '../../core/models/onoma.models';
+import {
+  AccessibilityPreferences,
+  LEARNER_INTERESTS,
+  LearnerInterest,
+  LearnerProfile,
+  normalizeLearnerInterests,
+  ReadingFont,
+} from '../../core/models/onoma.models';
 import { AuthService, UserService } from '../../core/services/onoma.services';
+import { InterestPickerComponent } from '../../shared/interest-picker.component';
 
 @Component({
   selector: 'app-onboarding-page',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, InterestPickerComponent],
   template: `
     <main class="onboarding-page">
       <header class="onboarding-header">
@@ -50,9 +58,6 @@ import { AuthService, UserService } from '../../core/services/onoma.services';
                     <option>Under 12</option><option>12–15</option><option>16–18</option><option>19+</option>
                   </select>
                 </label>
-                <label class="field">Preferred language
-                  <select formControlName="language"><option>English</option><option>Spanish</option><option>Other</option></select>
-                </label>
               </div>
             }
             @case (1) {
@@ -66,12 +71,11 @@ import { AuthService, UserService } from '../../core/services/onoma.services';
               </div>
             }
             @case (2) {
-              <label class="field">Interests <span class="field-hint">Separate each with a comma</span>
-                <input type="text" formControlName="interests" placeholder="Music, animals, stories..." />
-              </label>
-              <div class="interest-chips" aria-label="Ideas">
-                @for (interest of interestIdeas; track interest) { <span>{{ interest }}</span> }
-              </div>
+              <app-interest-picker
+                [options]="interestOptions"
+                [selected]="form.controls.interests.value"
+                (selectedChange)="form.controls.interests.setValue($event)"
+              />
             }
             @default {
               <div class="field-row">
@@ -142,8 +146,6 @@ import { AuthService, UserService } from '../../core/services/onoma.services';
     .choice-row input { accent-color: #477e68; }
     .choice-check { margin-left: auto; color: #477e68; opacity: 0; }
     .chosen .choice-check { opacity: 1; }
-    .interest-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: -3px; }
-    .interest-chips span { padding: 6px 11px; border-radius: 99px; background: #edf3ed; color: #6b806e; font-size: 10px; }
     .toggle-list { overflow: hidden; border: 1px solid #e5ebe6; border-radius: 12px; background: #fff; }
     .toggle-list label { display: flex; min-height: 58px; align-items: center; justify-content: space-between; gap: 12px; padding: 9px 14px; border-bottom: 1px solid #edf0ed; cursor: pointer; }
     .toggle-list label:last-child { border-bottom: 0; }
@@ -162,13 +164,15 @@ export class OnboardingPage {
   private readonly router = inject(Router);
   readonly step = signal(0);
   readonly goals = ['Read faster', 'Read words with confidence', 'Understand what I read', 'Spelling', 'General reading support', 'I’m not sure yet'];
-  readonly interestIdeas = ['Football', 'Games', 'Music', 'Animals', 'Space', 'Stories'];
+  readonly interestOptions = LEARNER_INTERESTS;
   readonly form = new FormGroup({
     name: new FormControl(this.auth.currentUser.profile.name, { nonNullable: true, validators: [Validators.required] }),
     ageGroup: new FormControl(this.auth.currentUser.profile.ageGroup, { nonNullable: true }),
-    language: new FormControl(this.auth.currentUser.profile.preferredLanguage, { nonNullable: true }),
     goal: new FormControl(this.auth.currentUser.profile.learningGoals[0] ?? this.goals[0], { nonNullable: true }),
-    interests: new FormControl(this.auth.currentUser.profile.interests.join(', '), { nonNullable: true }),
+    interests: new FormControl<LearnerInterest[]>(
+      normalizeLearnerInterests(this.auth.currentUser.profile.interests),
+      { nonNullable: true },
+    ),
     fontSize: new FormControl<AccessibilityPreferences['fontSize']>('comfortable', { nonNullable: true }),
     readingFont: new FormControl<ReadingFont>('default', { nonNullable: true }),
     letterSpacing: new FormControl<AccessibilityPreferences['letterSpacing']>('standard', { nonNullable: true }),
@@ -242,9 +246,8 @@ export class OnboardingPage {
       ...this.auth.currentUser.profile,
       name: values.name.trim(),
       ageGroup: values.ageGroup,
-      preferredLanguage: values.language,
       learningGoals: [values.goal],
-      interests: values.interests.split(',').map((interest) => interest.trim()).filter(Boolean),
+      interests: values.interests,
       preferences: {
         ...this.auth.currentUser.profile.preferences,
         readingFont: values.readingFont,

@@ -1,11 +1,12 @@
 import { Component, inject, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { Exercise, ExerciseAttempt } from '../../core/models/onoma.models';
 import { ExerciseService, ProgressService } from '../../core/services/onoma.services';
 import { ExerciseContainerComponent, ExerciseFeedbackComponent } from '../../shared/exercise-container.component';
 
 @Component({
   selector: 'app-practice-page',
-  imports: [ExerciseContainerComponent, ExerciseFeedbackComponent],
+  imports: [ExerciseContainerComponent, ExerciseFeedbackComponent, RouterLink],
   template: `
     <section class="page">
       <header class="page-header">
@@ -15,15 +16,30 @@ import { ExerciseContainerComponent, ExerciseFeedbackComponent } from '../../sha
       </header>
       <div class="practice-layout">
         <div>
-          <div class="exercise-meta">
-            <span class="round-icon" aria-hidden="true">Aa</span>
-            <div><strong>{{ exercise().skill }}</strong><small>About 5 minutes · A gentle challenge</small></div>
-            <span class="session-count">{{ progress().exercisesCompleted }} activities<br />completed</span>
-          </div>
-          @if (feedback()) {
-            <app-exercise-feedback [attempt]="lastAttempt()!" [exercise]="exercise()" (continued)="continuePractice()" />
+          @if (setComplete()) {
+            <section class="set-complete surface-card" aria-live="polite">
+              <span class="complete-icon" aria-hidden="true">✓</span>
+              <p class="eyebrow">PRACTICE SET COMPLETE</p>
+              <h2>That’s six activities done.</h2>
+              <p>You can finish here or start another set whenever you’re ready.</p>
+              <div class="complete-actions">
+                <a class="secondary-button" routerLink="/dashboard">Finish for now</a>
+                <button class="primary-button" type="button" (click)="startAnotherSet()">Start another set <span aria-hidden="true">→</span></button>
+              </div>
+            </section>
           } @else {
-            <app-exercise-container [exercise]="exercise()" mode="practice" (completed)="onCompleted($event)" />
+            <div class="exercise-meta">
+              <span class="round-icon" aria-hidden="true">Aa</span>
+              <div><strong>{{ exercise().skill }}</strong><small>Activity {{ completedInSet() + 1 }} of {{ sessionSize }}</small></div>
+              <span class="session-count">{{ progress().exercisesCompleted }} activities<br />completed</span>
+            </div>
+            @if (feedback()) {
+              <app-exercise-feedback [attempt]="lastAttempt()!" [exercise]="exercise()"
+                [continueLabel]="completedInSet() === sessionSize ? 'Finish this set' : 'Next activity'"
+                (continued)="continuePractice()" />
+            } @else {
+              <app-exercise-container [exercise]="exercise()" mode="practice" (completed)="onCompleted($event)" />
+            }
           }
         </div>
         <aside class="practice-aside surface-card">
@@ -47,6 +63,14 @@ import { ExerciseContainerComponent, ExerciseFeedbackComponent } from '../../sha
     .exercise-meta strong { color: #39463e; font-size: 13px; }
     .exercise-meta small { color: #929d95; font-size: 10px; }
     .session-count { margin-left: auto; color: #919d94; font-size: 10px; line-height: 1.5; text-align: right; }
+    .set-complete { padding: 34px; text-align: center; }
+    .complete-icon { display: grid; width: 48px; height: 48px; place-items: center; margin: 0 auto 17px;
+      border-radius: 16px; background: var(--selection-surface); color: var(--selection-text); font-size: 21px; }
+    .set-complete .eyebrow { margin-bottom: 7px; }
+    .set-complete h2 { margin: 0; color: var(--ink); font-size: 22px; }
+    .set-complete > p:not(.eyebrow) { color: var(--muted); font-size: 13px; }
+    .complete-actions { display: flex; justify-content: center; gap: 10px; margin-top: 22px; }
+    .complete-actions a { display: inline-flex; align-items: center; }
     .practice-aside { padding: 21px 19px; }
     .aside-symbol { display: grid; width: 34px; height: 34px; place-items: center; border-radius: 11px;
       background: #f4eee1; color: #b38f4b; }
@@ -59,21 +83,38 @@ import { ExerciseContainerComponent, ExerciseFeedbackComponent } from '../../sha
   `],
 })
 export class PracticePage {
+  readonly sessionSize = 6;
   private readonly exercises = inject(ExerciseService);
   private readonly progressService = inject(ProgressService);
   readonly exercise = signal(this.exercises.nextExercise());
   readonly progress = this.progressService.progress;
   readonly feedback = signal(false);
+  readonly completedInSet = signal(0);
+  readonly setComplete = signal(false);
   readonly lastAttempt = signal<ExerciseAttempt | null>(null);
 
   onCompleted(attempt: ExerciseAttempt): void {
     this.lastAttempt.set(attempt);
     this.progressService.recordAttempt(attempt, this.exercise().skill);
+    this.completedInSet.update((count) => Math.min(this.sessionSize, count + 1));
     this.feedback.set(true);
   }
 
   continuePractice(): void {
+    if (this.completedInSet() === this.sessionSize) {
+      this.feedback.set(false);
+      this.setComplete.set(true);
+      return;
+    }
     this.feedback.set(false);
+    this.exercise.set(this.exercises.nextExercise());
+  }
+
+  startAnotherSet(): void {
+    this.completedInSet.set(0);
+    this.setComplete.set(false);
+    this.feedback.set(false);
+    this.lastAttempt.set(null);
     this.exercise.set(this.exercises.nextExercise());
   }
 }

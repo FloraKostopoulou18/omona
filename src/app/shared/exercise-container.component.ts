@@ -59,17 +59,28 @@ import { UserService } from '../core/services/onoma.services';
       }
       <div class="answer-list" role="group" aria-label="Choose an answer">
         @for (option of exercise().content.options; track option) {
-          <button
-            type="button"
-            class="answer-option"
-            [style.font-size]="choiceFontSize()"
-            [class.selected]="selected() === option"
-            [attr.aria-pressed]="selected() === option"
-            (click)="choose(option)"
-          >
-            <span class="radio-mark" aria-hidden="true"></span>
-            <span>{{ option }}</span>
-          </button>
+          <div class="answer-row">
+            <button
+              type="button"
+              class="answer-option"
+              [style.font-size]="choiceFontSize()"
+              [class.selected]="selected() === option"
+              [attr.aria-pressed]="selected() === option"
+              (click)="choose(option)"
+            >
+              <span class="radio-mark" aria-hidden="true"></span>
+              <span>{{ option }}</span>
+            </button>
+            @if (users.profile().preferences.textToSpeech && audioSupported) {
+              <button
+                type="button"
+                class="choice-audio-button"
+                [attr.aria-label]="speakingOption() === option ? 'Stop listening to ' + option : 'Listen to ' + option"
+                [attr.aria-pressed]="speakingOption() === option"
+                (click)="readChoice(option)"
+              >{{ speakingOption() === option ? '■' : '🔊' }}</button>
+            }
+          </div>
         }
       </div>
       <div class="exercise-actions">
@@ -104,15 +115,19 @@ import { UserService } from '../core/services/onoma.services';
     .line-step:hover:not(:disabled) { background: var(--hover-surface); }
     .line-step:disabled { color: var(--muted); cursor: not-allowed; }
     .answer-list { display: grid; gap: 10px; }
+    .answer-row { display: flex; align-items: stretch; gap: 8px; }
     .answer-option { display: flex; min-height: 51px; align-items: center; gap: 12px; padding: 0 14px;
       border: 1px solid #e6ebe7; border-radius: 11px; background: #fff; color: #47534b; cursor: pointer;
-      font-size: var(--reader-choice-size, 14px); text-align: left; transition: border-color 140ms ease, background 140ms ease; }
+      flex: 1; font-size: var(--reader-choice-size, 14px); text-align: left; transition: border-color 140ms ease, background 140ms ease; }
     .answer-option:hover { border-color: var(--selection-border); background: var(--hover-surface); }
     .answer-option.selected { border-color: var(--selection-border); background: var(--selection-surface); color: var(--selection-text); }
     .radio-mark { display: grid; width: 17px; height: 17px; flex: 0 0 auto; place-items: center;
       border: 1.5px solid #c8d0ca; border-radius: 50%; }
     .selected .radio-mark { border-color: var(--selection-control); }
     .selected .radio-mark::after { width: 7px; height: 7px; border-radius: 50%; background: var(--selection-control); content: ''; }
+    .choice-audio-button { width: 46px; flex: 0 0 auto; border: 1px solid var(--line); border-radius: 11px;
+      background: var(--paper); color: var(--muted); cursor: pointer; font-size: 15px; }
+    .choice-audio-button:hover { border-color: var(--selection-border); background: var(--hover-surface); }
     .exercise-actions { display: flex; align-items: center; justify-content: space-between; gap: 15px; margin-top: 23px; }
     .reassurance { margin: 0; color: #98a29b; font-size: var(--reader-support-size, 11px); }
     .primary-button { flex: 0 0 auto; min-height: 43px; font-size: 12px; }
@@ -130,6 +145,7 @@ export class ExerciseContainerComponent {
   readonly mode = input.required<ExerciseMode>();
   readonly completed = output<ExerciseAttempt>();
   readonly selected = signal<string | null>(null);
+  readonly speakingOption = signal<string | null>(null);
   readonly promptLines = computed(() => this.exercise().content.prompt.split('\n'));
   readonly currentLine = signal(0);
   readonly promptFontSize = computed(() => {
@@ -147,6 +163,7 @@ export class ExerciseContainerComponent {
   readonly speechSpeaking = signal(false);
   readonly speechStatus = signal('');
   private readonly destroyRef = inject(DestroyRef);
+  private speechRequestId = 0;
   private startedAt = Date.now();
   readonly audioSupported = typeof window !== 'undefined' && 'speechSynthesis' in window;
 
@@ -155,6 +172,7 @@ export class ExerciseContainerComponent {
       this.exercise().id;
       this.selected.set(null);
       this.currentLine.set(0);
+      this.speakingOption.set(null);
       this.startedAt = Date.now();
     });
     this.destroyRef.onDestroy(() => {
@@ -183,14 +201,11 @@ export class ExerciseContainerComponent {
   }
 
   readPrompt(): void {
-    if (!this.audioSupported) {
-      this.speechStatus.set('Speech playback is not available in this browser.');
-      return;
-    }
-
     if (this.speechSpeaking()) {
+      this.speechRequestId += 1;
       window.speechSynthesis.cancel();
       this.speechSpeaking.set(false);
+      this.speakingOption.set(null);
       this.speechStatus.set('Speech stopped.');
       return;
     }
@@ -198,16 +213,46 @@ export class ExerciseContainerComponent {
     const text = [this.exercise().content.instruction, this.exercise().content.prompt]
       .filter((part): part is string => Boolean(part?.trim()))
       .join(' ');
+    this.readText(text);
+  }
+
+  readChoice(option: string): void {
+    if (this.speakingOption() === option && this.speechSpeaking()) {
+      this.speechRequestId += 1;
+      window.speechSynthesis.cancel();
+      this.speechSpeaking.set(false);
+      this.speakingOption.set(null);
+      this.speechStatus.set('Speech stopped.');
+      return;
+    }
+    this.readText(option, option);
+  }
+
+  private readText(text: string, option: string | null = null): void {
+    if (!this.audioSupported) {
+      this.speechStatus.set('Speech playback is not available in this browser.');
+      return;
+    }
+
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = this.users.profile().preferredLanguage === 'Spanish' ? 'es-ES' : 'en-US';
+    const requestId = ++this.speechRequestId;
+    utterance.lang = this.exercise().language ?? navigator.language;
     utterance.rate = 0.9;
     utterance.onstart = () => {
+      if (requestId !== this.speechRequestId) return;
       this.speechSpeaking.set(true);
+      this.speakingOption.set(option);
       this.speechStatus.set('');
     };
-    utterance.onend = () => this.speechSpeaking.set(false);
-    utterance.onerror = () => {
+    utterance.onend = () => {
+      if (requestId !== this.speechRequestId) return;
       this.speechSpeaking.set(false);
+      this.speakingOption.set(null);
+    };
+    utterance.onerror = (event) => {
+      if (requestId !== this.speechRequestId || event.error === 'canceled' || event.error === 'interrupted') return;
+      this.speechSpeaking.set(false);
+      this.speakingOption.set(null);
       this.speechStatus.set('Speech playback failed. Please try again.');
     };
 
@@ -216,8 +261,10 @@ export class ExerciseContainerComponent {
       window.speechSynthesis.cancel();
       window.speechSynthesis.speak(utterance);
       this.speechSpeaking.set(true);
+      this.speakingOption.set(option);
     } catch {
       this.speechSpeaking.set(false);
+      this.speakingOption.set(null);
       this.speechStatus.set('Speech playback failed. Please try again.');
     }
   }
@@ -233,7 +280,7 @@ export class ExerciseContainerComponent {
         <p>{{ attempt().correct ? exercise().content.explanation : 'The answer was “' + exercise().content.correctAnswer + '”. ' + exercise().content.explanation }}</p>
       </div>
       <button class="primary-button" type="button" (click)="continued.emit()">
-        Continue <span aria-hidden="true">→</span>
+        {{ continueLabel() }} <span aria-hidden="true">→</span>
       </button>
     </section>
   `,
@@ -259,5 +306,6 @@ export class ExerciseContainerComponent {
 export class ExerciseFeedbackComponent {
   readonly attempt = input.required<ExerciseAttempt>();
   readonly exercise = input.required<Exercise>();
+  readonly continueLabel = input('Continue');
   readonly continued = output<void>();
 }

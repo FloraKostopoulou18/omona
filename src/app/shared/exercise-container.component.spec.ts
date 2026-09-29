@@ -145,5 +145,15 @@ describe('ExerciseContainerComponent', () => {
       lang: 'en-US',
       rate: 0.9,
     });
+
+    const listenToChoice = fixture.nativeElement.querySelector('.choice-audio-button') as HTMLButtonElement;
+    expect(listenToChoice).not.toBeNull();
+    listenToChoice.click();
+    expect(speech.speak).toHaveBeenCalledTimes(2);
+    expect(speech.speak.mock.calls[1][0]).toMatchObject({
+      text: 'play',
+      lang: 'en-US',
+      rate: 0.9,
+    });
   });
 });

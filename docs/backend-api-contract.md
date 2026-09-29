@@ -1,428 +1,890 @@
-# Mosaic Django/PostgreSQL Backend Contract
+**\# Mosaic Django/PostgreSQL Backend Contract - Updated for Onoma
+Initial Assessment**
 
-This is the proposed contract for connecting the Angular app to Django REST Framework and PostgreSQL. There is no Django project in this repository yet; this document defines the models and JSON API before backend implementation.
+This is the proposed contract for connecting the Angular app to Django
+REST Framework and PostgreSQL. There is no Django project in this
+repository yet; this document defines the models and JSON API before
+backend implementation. This revision incorporates the multidimensional,
+age-group-specific Onoma initial assessment and keeps accessibility
+preferences as a separate post-assessment profile step.
 
-## Contract conventions
+**\## Contract conventions**
 
-- Prefix API routes with `/api/`.
-- Use JSON over HTTPS and authenticated, secure, HttpOnly session cookies (with CSRF protection) for the browser app. Do not store session credentials in local storage.
-- Use snake_case for JSON keys, Django model fields, and query parameters. Angular should map API DTOs to its camelCase view models in an API adapter.
-- Use UUIDs serialized as strings for public resource IDs. Update the Angular interfaces, which currently use numeric IDs, when adding that adapter.
-- Use ISO 8601 UTC timestamps.
-- Never return an exercise answer key before that exercise has been submitted. Correctness and the answer explanation are returned only in the submit response.
-- The server is authoritative for authentication, permissions, assessment completion, answer correctness, progress, and achievements. Do not accept these values from client writes.
+\- Prefix API routes with \`/api/\`.
 
-## Django model plan
+\- Use JSON over HTTPS and authenticated, secure, HttpOnly session
+cookies (with CSRF protection) for the browser app. Do not store session
+credentials in local storage.
 
-Set a custom email-authenticated user model as `AUTH_USER_MODEL` **before the first migration**. The model sketch below omits routine `created_at`/`updated_at` fields where their purpose is clear.
+\- Use snake_case for JSON keys, Django model fields, and query
+parameters. Angular should map API DTOs to its camelCase view models in
+an API adapter.
 
-### `User`
+\- Use UUIDs serialized as strings for public resource IDs. Update the
+Angular interfaces, which currently use numeric IDs, when adding that
+adapter.
 
-Extend `AbstractUser`; use a UUID primary key, unique normalized email as `USERNAME_FIELD`, and remove or make the username field optional. Store the password only using Django's password hashers. Store `name` on the learner profile, not in the password/auth record.
+\- Use ISO 8601 UTC timestamps.
 
-### `LearnerProfile`
+\- Never return an exercise answer key before that exercise has been
+submitted. Correctness and the answer explanation are returned only in
+the submit response.
 
-One-to-one with `User`. Fields:
+\- The server is authoritative for authentication, permissions,
+assessment completion, answer correctness, progress, and achievements.
+Do not accept these values from client writes.
 
-| Field | Type | Notes |
-|---|---|---|
-| `age_group` | choice / nullable | `under_12`, `12_15`, `16_18`, `19_plus` |
-| `preferred_language` | short string | BCP 47 language tag, e.g. `en`, `es`; use this in speech and exercise generation |
-| `learning_goals` | JSON list or many-to-many | Stable goal codes are preferred; serialize with labels for the current UI |
-| `current_focus` | nullable FK to `Skill` | The selected/current learning focus |
-| `interests` | many-to-many to `Interest` | Curated, safe-for-work interests; store stable slugs rather than user-authored prompt text |
+**\## Django model plan**
 
-The API's `assessment_completed` value is derived from the learner's assessment record (`status == "completed"`), not writable profile data.
+Set a custom email-authenticated user model as \`AUTH_USER_MODEL\`
+**\*\*before the first migration\*\***. The model sketch below omits
+routine \`created_at\`/\`updated_at\` fields where their purpose is
+clear.
 
-### `AccessibilitySettings`
+**\### \`User\`**
 
-One-to-one with `LearnerProfile`, created with defaults:
+Extend \`AbstractUser\`; use a UUID primary key, unique normalized email
+as \`USERNAME_FIELD\`, and remove or make the username field optional.
+Store the password only using Django's password hashers. Store \`name\`
+on the learner profile, not in the password/auth record.
 
-| Field | Allowed values |
-|---|---|
-| `reading_font` | `default`, `lexend`, `opendyslexic` |
-| `font_size` | `comfortable`, `large`, `extra-large` |
-| `letter_spacing` | `standard`, `wide`, `wider` |
-| `line_spacing` | `standard`, `relaxed`, `wide` |
-| `text_to_speech` | boolean |
-| `current_line_highlight` | boolean |
-| `reduced_clutter` | boolean |
-| `theme` | `light`, `dark` |
+**\### \`LearnerProfile\`**
 
-### `Interest`
+One-to-one with \`User\`. Fields:
 
-Curated selectable interests with unique `slug`, display `label`, `is_active`, and optional ordering. Seed the initial options from the frontend list (animals, art and crafts, books and stories, cooking and food, dance, games and puzzles, music, nature, science and space, sports, technology, travel). The API may serialize the label for display, but writes should use slugs.
+\| Field \| Type \| Notes \|
 
-### `Skill` and `LearnerSkillProgress`
+\|---\|---\|---\|
 
-`Skill` contains a unique stable `slug` and display `name`. `LearnerSkillProgress` links a learner profile and skill, stores a bounded integer `progress` from 0 to 100, and optional baseline/current scores and timestamps. Enforce a unique `(learner_profile, skill)` pair. The API's `change` is calculated from the selected comparison period rather than accepted from the client.
+\| \`age_group\` \| choice / nullable \| \`under_12\`, \`12_15\`,
+\`16_18\`, \`19_plus\` \|
 
-### `Exercise`
+\| \`learning_goals\` \| JSON list or many-to-many \| Stable goal codes
+are preferred; serialize with labels for the current UI \|
 
-Stores validated exercises, whether generated by the LLM or authored by an administrator.
+\| \`current_focus\` \| nullable FK to \`Skill\` \| The selected/current
+learning focus \|
 
-| Field | Type | Notes |
-|---|---|---|
-| `id` | UUID | Public exercise ID |
-| `kind` | choice | `phoneme_identification`, `phoneme_manipulation`, `decoding`, `rapid_naming`, `reading_fluency`, `comprehension` |
-| `skill` | FK to `Skill` | Stable skill classification |
-| `difficulty` | small integer | Define and validate the range, e.g. 1–5 |
-| `instruction` | nullable text | Optional instruction text |
-| `prompt` | text | The learner-facing prompt |
-| `options` | JSON list | Ordered `{id, text}` choices with unique IDs per exercise |
-| `correct_option_id` | string | **Private; never included in an exercise-fetch response** |
-| `explanation` | text | Reveal in feedback after submission |
-| `language` | short string | BCP 47 tag |
-| `source` | choice | `llm`, `curated`, `admin` |
-| `generation_metadata` | JSON object | Provider/model, prompt/schema version, request ID, and generation time; never credentials or hidden reasoning |
-| `is_active` | boolean | Exclude retired or rejected items |
+\| \`interests\` \| many-to-many to \`Interest\` \| Curated,
+safe-for-work interests; store stable slugs rather than user-authored
+prompt text \|
 
-Validate LLM output against a strict JSON schema before saving or serving it. Check option count and IDs, answer-key membership, language, difficulty, age appropriateness, and required fields. Keep a curated fallback if generation fails. Do not expose provider credentials, system prompts, chain-of-thought, or the answer key.
+The API's \`assessment_completed\` value is derived from the learner's
+assessment record (\`status == "completed"\`), not writable profile
+data.
 
-### `Assessment`
+**\### \`AccessibilitySettings\`**
 
-One-to-one with the learner profile for the initial one-time assessment. Fields: UUID `id`, `status` (`in_progress`, `completed`), `started_at`, nullable `completed_at`, and assessment/schema version. Absence of a row means `not_started`; enforce at most one assessment per learner for this product flow. An unfinished assessment resumes; only the server can move it to completed. Prefer a vetted, versioned/calibrated item bank for baseline assessment; use LLM generation for practice unless generated assessment items have been reviewed and calibrated, so scores remain meaningful.
+One-to-one with \`LearnerProfile\`, created with defaults:
 
-### `AssessmentItem`
+\| Field \| Allowed values \|
 
-Ordered through-model linking an assessment to its exercises. Fields: assessment FK, exercise FK, integer `position`, nullable `answered_at`. Enforce unique `(assessment, position)` and `(assessment, exercise)`. The assessment endpoint only serves the current unanswered item.
+\|---\|---\|
 
-### `ExerciseAttempt`
+\| \`reading_font\` \| \`default\`, \`lexend\`, \`opendyslexic\` \|
 
-Append-only record of a submitted response. Fields: UUID `id`, learner-profile FK, exercise FK, nullable assessment FK, submitted `selected_option_id`, server-computed `is_correct`, non-negative `response_time_ms`, non-negative `hints_used`, optional server-classified `error_type`, `created_at`, and client-generated `idempotency_key`. Enforce unique `(learner_profile, idempotency_key)` so retrying a network request does not count twice. Validate that the selected option belongs to that exercise and, when present, that exercise belongs to that learner's assessment.
+\| \`font_size\` \| \`comfortable\`, \`large\`, \`extra-large\` \|
 
-### `DailyActivity` and `Achievement`
+\| \`letter_spacing\` \| \`standard\`, \`wide\`, \`wider\` \|
 
-- `DailyActivity`: unique `(learner_profile, activity_date)` row with completed activity count. Use the learner's configured timezone when deriving streaks.
-- `Achievement`: catalog row with stable `code`, `title`, `description`, and a frontend-safe `icon` key.
-- `LearnerAchievement`: unique `(learner_profile, achievement)` award with `earned_at`.
+\| \`line_spacing\` \| \`standard\`, \`relaxed\`, \`wide\` \|
 
-Counts, streaks, and awards are computed/updated by the server from attempts. Never accept client-supplied progress totals.
+\| \`text_to_speech\` \| boolean \|
 
-### `RealWorldScenario` (optional persisted content)
+\| \`current_line_highlight\` \| boolean \|
 
-If scenarios are generated or curated independently, store title, category, learner-facing context/data, language, and a link to its exercise. For the current bus example the displayed departure board can be delivered as scenario JSON and does not require a separate model until scenarios need editing, reuse, or reporting.
+\| \`reduced_clutter\` \| boolean \|
 
-## Endpoint contract
+\| \`theme\` \| \`light\`, \`dark\` \|
 
-All endpoints below assume the `/api` prefix. Authentication routes are exceptions to the authenticated-session requirement.
+**\### \`Interest\`**
 
-### Authentication
+Curated selectable interests with unique \`slug\`, display \`label\`,
+\`is_active\`, and optional ordering. Seed the initial options from the
+frontend list (animals, art and crafts, books and stories, cooking and
+food, dance, games and puzzles, music, nature, science and space,
+sports, technology, travel). The API may serialize the label for
+display, but writes should use slugs.
 
-`POST /auth/register/`
+**\### \`Skill\` and \`LearnerSkillProgress\`**
+
+\`Skill\` contains a unique stable \`slug\` and display \`name\`.
+\`LearnerSkillProgress\` links a learner profile and skill, stores a
+bounded integer \`progress\` from 0 to 100, and optional
+baseline/current scores and timestamps. Enforce a unique
+\`(learner_profile, skill)\` pair. The API's \`change\` is calculated
+from the selected comparison period rather than accepted from the
+client.
+
+**\### \`Exercise\`**
+
+Stores validated exercises, whether generated by the LLM or authored by
+an administrator.
+
+\| Field \| Type \| Notes \|
+
+\|---\|---\|---\|
+
+\| \`id\` \| UUID \| Public exercise ID \|
+
+\| \`kind\` \| choice \| \`phoneme_identification\`,
+\`phoneme_manipulation\`, \`decoding\`, \`rapid_naming\`,
+\`reading_fluency\`, \`comprehension\` \|
+
+\| \`skill\` \| FK to \`Skill\` \| Stable skill classification \|
+
+\| \`difficulty\` \| small integer \| Define and validate the range,
+e.g. 1--5 \|
+
+\| \`instruction\` \| nullable text \| Optional instruction text \|
+
+\| \`prompt\` \| text \| The learner-facing prompt \|
+
+\| \`options\` \| JSON list \| Ordered \`{id, text}\` choices with
+unique IDs per exercise \|
+
+\| \`correct_option_id\` \| string \| **\*\*Private; never included in
+an exercise-fetch response\*\*** \|
+
+\| \`explanation\` \| text \| Reveal in feedback after submission \|
+
+\| \`language\` \| short string \| BCP 47 tag \|
+
+\| \`source\` \| choice \| \`llm\`, \`curated\`, \`admin\` \|
+
+\| \`generation_metadata\` \| JSON object \| Provider/model,
+prompt/schema version, request ID, and generation time; never
+credentials or hidden reasoning \|
+
+\| \`is_active\` \| boolean \| Exclude retired or rejected items \|
+
+Validate LLM output against a strict JSON schema before saving or
+serving it. Validation is conditional on `response_type`: check option
+count/IDs and answer-key membership for `single_choice`; validate
+bounded structured stimulus/response schemas for other modes. Always
+validate language, difficulty, age appropriateness, and required fields.
+Keep a curated fallback if generation fails. Do not expose provider
+credentials, system prompts, chain-of-thought, or private scoring keys.
+
+For the one-time baseline assessment, prefer curated/versioned items
+rather than live LLM generation. LLM generation is primarily for
+post-assessment practice unless generated baseline items have been
+reviewed and calibrated.
+
+**\### \`Assessment\`**
+
+One-to-one with the learner profile for the initial one-time assessment.
+Fields: UUID \`id\`, \`status\` (\`in_progress\`, \`completed\`),
+\`started_at\`, nullable \`completed_at\`, and assessment/schema
+version. Absence of a row means \`not_started\`; enforce at most one
+assessment per learner for this product flow. An unfinished assessment
+resumes; only the server can move it to completed. Prefer a vetted,
+versioned/calibrated item bank for baseline assessment; use LLM
+generation for practice unless generated assessment items have been
+reviewed and calibrated, so scores remain meaningful.
+
+**\### \`AssessmentItem\`**
+
+Ordered through-model linking an assessment to its exercises. Fields:
+assessment FK, exercise FK, integer \`position\`, nullable
+\`answered_at\`. Enforce unique \`(assessment, position)\` and
+\`(assessment, exercise)\`. The assessment endpoint only serves the
+current unanswered item.
+
+**\### \`ExerciseAttempt\`**
+
+Append-only record of a submitted response. Fields: UUID \`id\`,
+learner-profile FK, exercise FK, nullable assessment FK, submitted
+\`selected_option_id\`, server-computed \`is_correct\`, non-negative
+\`response_time_ms\`, non-negative \`hints_used\`, optional
+server-classified \`error_type\`, \`created_at\`, and client-generated
+\`idempotency_key\`. Enforce unique \`(learner_profile,
+idempotency_key)\` so retrying a network request does not count twice.
+Validate that the selected option belongs to that exercise and, when
+present, that exercise belongs to that learner's assessment.
+
+**\### \`DailyActivity\` and \`Achievement\`**
+
+\- \`DailyActivity\`: unique \`(learner_profile, activity_date)\` row
+with completed activity count. Use the learner's configured timezone
+when deriving streaks.
+
+\- \`Achievement\`: catalog row with stable \`code\`, \`title\`,
+\`description\`, and a frontend-safe \`icon\` key.
+
+\- \`LearnerAchievement\`: unique \`(learner_profile, achievement)\`
+award with \`earned_at\`.
+
+Counts, streaks, and awards are computed/updated by the server from
+attempts. Never accept client-supplied progress totals.
+
+**\### \`RealWorldScenario\` (optional persisted content)**
+
+If scenarios are generated or curated independently, store title,
+category, learner-facing context/data, language, and a link to its
+exercise. For the current bus example the displayed departure board can
+be delivered as scenario JSON and does not require a separate model
+until scenarios need editing, reuse, or reporting.
+
+**\## Endpoint contract**
+
+All endpoints below assume the \`/api\` prefix. Authentication routes
+are exceptions to the authenticated-session requirement.
+
+**\### Authentication**
+
+\`POST /auth/register/\`
 
 Request:
 
-```json
+\`\`\`json
+
 {
-  "name": "Alex Rivera",
-  "email": "alex@example.com",
-  "password": "a-long-password",
-  "password_confirm": "a-long-password"
+
+  "name": "Alex Rivera",
+
+  "email": "alex@example.com",
+
+  "password": "a-long-password",
+
+  "password_confirm": "a-long-password"
+
 }
-```
 
-Response `201 Created` (also establishes the session):
+\`\`\`
 
-```json
+Response \`201 Created\` (also establishes the session):
+
+\`\`\`json
+
 {
-  "user": {
-    "id": "9b9c9067-f42a-4b24-8a56-6182af604785",
-    "email": "alex@example.com",
-    "name": "Alex Rivera",
-    "assessment_completed": false,
-    "profile": {
-      "name": "Alex Rivera",
-      "age_group": null,
-      "preferred_language": "en",
-      "learning_goals": [],
-      "interests": [],
-      "current_focus": null,
-      "preferences": {
-        "reading_font": "default",
-        "font_size": "comfortable",
-        "letter_spacing": "standard",
-        "line_spacing": "relaxed",
-        "text_to_speech": false,
-        "current_line_highlight": true,
-        "reduced_clutter": false,
-        "theme": "light"
-      }
-    }
-  }
+
+  "user": {
+
+    "id": "9b9c9067-f42a-4b24-8a56-6182af604785",
+
+    "email": "alex@example.com",
+
+    "name": "Alex Rivera",
+
+    "assessment_completed": false,
+
+    "profile": {
+
+      "name": "Alex Rivera",
+
+      "age_group": null,
+
+      "learning_goals": \[\],
+
+      "interests": \[\],
+
+      "current_focus": null,
+
+      "preferences": {
+
+        "reading_font": "default",
+
+        "font_size": "comfortable",
+
+        "letter_spacing": "standard",
+
+        "line_spacing": "relaxed",
+
+        "text_to_speech": false,
+
+        "current_line_highlight": true,
+
+        "reduced_clutter": false,
+
+        "theme": "light"
+
+      }
+
+    }
+
+  }
+
 }
-```
 
-Return field validation errors with `400`; return a generic conflict for a duplicate email without exposing account-sensitive details.
+\`\`\`
 
-`POST /auth/login/`
+Return field validation errors with \`400\`; return a generic conflict
+for a duplicate email without exposing account-sensitive details.
 
-Request: `{"email":"alex@example.com","password":"a-long-password"}`. Response `200 OK`: same `user` object as registration, with session established. Invalid credentials return a generic `400` or `401` response.
+\`POST /auth/login/\`
 
-`POST /auth/logout/`: authenticated; clears the session and returns `204 No Content`.
+Request: \`{"email":"alex@example.com","password":"a-long-password"}\`.
+Response \`200 OK\`: same \`user\` object as registration, with session
+established. Invalid credentials return a generic \`400\` or \`401\`
+response.
 
-`GET /auth/me/`: authenticated; returns the same `user` object. The frontend should use `assessment_completed` from this response for routing and dashboard visibility; do not infer it from local state.
+\`POST /auth/logout/\`: authenticated; clears the session and returns
+\`204 No Content\`.
 
-### Learner profile and onboarding
+\`GET /auth/me/\`: authenticated; returns the same \`user\` object. The
+frontend should use \`assessment_completed\` from this response for
+routing and dashboard visibility; do not infer it from local state.
 
-`GET /profile/`: returns the profile object plus `assessment_completed`.
+**\### Learner profile and onboarding**
 
-The profile response contains the same writable profile fields as the PATCH example, with `assessment_completed` added as read-only. `name` is part of the profile response even though it is also present at the top level of the auth response.
+\`GET /profile/\`: returns the profile object plus
+\`assessment_completed\`.
 
-`PATCH /profile/`: partial update; only accepts editable fields. `assessment_completed`, IDs, progress, and assessment state are read-only.
+The profile response contains the same writable profile fields as the
+PATCH example, with \`assessment_completed\` added as read-only.
+\`name\` is part of the profile response even though it is also present
+at the top level of the auth response.
+
+\`PATCH /profile/\`: partial update; only accepts editable fields.
+\`assessment_completed\`, IDs, progress, and assessment state are
+read-only.
 
 Request:
 
-```json
+\`\`\`json
+
 {
-  "name": "Alex Rivera",
-  "age_group": "16_18",
-  "preferred_language": "en",
-  "learning_goals": ["reading_fluency", "comprehension"],
-  "interests": ["music", "science_space"],
-  "current_focus": "reading_fluency",
-  "preferences": {
-    "reading_font": "opendyslexic",
-    "font_size": "large",
-    "letter_spacing": "wide",
-    "line_spacing": "relaxed",
-    "text_to_speech": true,
-    "current_line_highlight": true,
-    "reduced_clutter": false,
-    "theme": "light"
-  }
+
+  "name": "Alex Rivera",
+
+  "age_group": "16_18",
+
+  "learning_goals": \["reading_fluency", "comprehension"\],
+
+  "interests": \["music", "science_space"\],
+
+  "current_focus": "reading_fluency",
+
+  "preferences": {
+
+    "reading_font": "opendyslexic",
+
+    "font_size": "large",
+
+    "letter_spacing": "wide",
+
+    "line_spacing": "relaxed",
+
+    "text_to_speech": true,
+
+    "current_line_highlight": true,
+
+    "reduced_clutter": false,
+
+    "theme": "light"
+
+  }
+
 }
-```
 
-Response `200 OK`: updated profile in the same shape as `GET /profile/`, including `name` and `assessment_completed`. Validate enum values and interest/goal slugs server-side. The current Angular onboarding and profile forms store interest labels as comma-separated text; before API integration, replace those inputs with the curated picker and map selected values to slugs.
+\`\`\`
 
-### One-time assessment
+Response \`200 OK\`: updated profile in the same shape as \`GET
+/profile/\`, including \`name\` and \`assessment_completed\`. Validate
+enum values and interest/goal slugs server-side. The Angular onboarding
+and profile forms use curated interest choices; map selected labels to
+stable slugs in the API adapter.
 
-`GET /assessment/`: authenticated; returns current state without starting or mutating the assessment. A new learner receives `status: "not_started"` and no exercise. `POST /assessment/` starts or resumes the learner's single assessment and returns its state and current exercise. Repeated starts resume the same assessment; they must not create another attempt or assessment.
+**\### One-time assessment**
 
-`POST /assessment/` request: `{}`. A new assessment and its server-selected items are created transactionally; an existing in-progress assessment is resumed; a completed assessment remains completed and returns no exercise.
+\`GET /assessment/\`: authenticated; returns current state without
+starting or mutating the assessment. A new learner receives \`status:
+"not_started"\` and no exercise. \`POST /assessment/\` starts or resumes
+the learner's single assessment and returns its state and current
+exercise. Repeated starts resume the same assessment; they must not
+create another attempt or assessment.
 
-New learner `GET /assessment/` response:
+\`POST /assessment/\` request: \`{}\`. A new assessment and its
+server-selected items are created transactionally; an existing
+in-progress assessment is resumed; a completed assessment remains
+completed and returns no exercise.
 
-```json
+New learner \`GET /assessment/\` response:
+
+\`\`\`json
+
 {
-  "id": null,
-  "status": "not_started",
-  "assessment_completed": false,
-  "current_position": 0,
-  "total_items": 6,
-  "exercise": null
+
+  "id": null,
+
+  "status": "not_started",
+
+  "assessment_completed": false,
+
+  "current_position": 0,
+
+  "total_items": 9,
+
+  "exercise": null
+
 }
-```
+
+\`\`\`
 
 In progress response:
 
-```json
+\`\`\`json
+
 {
-  "id": "a03d3789-d1fc-40b5-99f9-9a50b2d10e90",
-  "status": "in_progress",
-  "assessment_completed": false,
-  "current_position": 1,
-  "total_items": 6,
-  "exercise": {
-    "id": "a28cbd72-513a-45bd-9273-63d4eb857352",
-    "kind": "reading_fluency",
-    "skill": {"slug": "reading_fluency", "name": "Reading fluency"},
-    "difficulty": 2,
-    "language": "en",
-    "instruction": "Take your time. Read each option and choose the one that fits.",
-    "prompt": "Which word completes the sentence? The bright stars filled the night ___.",
-    "options": [
-      {"id": "a", "text": "sky"},
-      {"id": "b", "text": "key"},
-      {"id": "c", "text": "shy"}
-    ]
-  }
+
+  "id": "a03d3789-d1fc-40b5-99f9-9a50b2d10e90",
+
+  "status": "in_progress",
+
+  "assessment_completed": false,
+
+  "current_position": 1,
+
+  "total_items": 9,
+
+  "exercise": {
+
+    "id": "a28cbd72-513a-45bd-9273-63d4eb857352",
+
+    "kind": "reading_fluency",
+
+    "skill": {"slug": "reading_fluency", "name": "Reading fluency"},
+
+    "difficulty": 2,
+
+    "language": "en",
+
+    "instruction": "Take your time. Read each option and choose the one
+that fits.",
+
+    "prompt": "Which word completes the sentence? The bright stars
+filled the night \_\_\_.",
+
+    "options": \[
+
+      {"id": "a", "text": "sky"},
+
+      {"id": "b", "text": "key"},
+
+      {"id": "c", "text": "shy"}
+
+    \]
+
+  }
+
 }
-```
+
+\`\`\`
 
 Completed response:
 
-```json
-{
-  "id": "a03d3789-d1fc-40b5-99f9-9a50b2d10e90",
-  "status": "completed",
-  "assessment_completed": true,
-  "current_position": 6,
-  "total_items": 6,
-  "completed_at": "2026-09-28T13:45:00Z",
-  "exercise": null
-}
-```
+\`\`\`json
 
-`POST /assessment/attempt/`: records one answer and atomically advances the assessment. The server validates ownership, that the assessment is in progress, and that the exercise is the current unanswered item. The final valid attempt marks the assessment completed in the same transaction.
+{
+
+  "id": "a03d3789-d1fc-40b5-99f9-9a50b2d10e90",
+
+  "status": "completed",
+
+  "assessment_completed": true,
+
+  "current_position": 9,
+
+  "total_items": 9,
+
+  "completed_at": "2026-09-28T13:45:00Z",
+
+  "exercise": null
+
+}
+
+\`\`\`
+
+\`POST /assessment/attempt/\`: records one answer and atomically
+advances the assessment. The server validates ownership, that the
+assessment is in progress, and that the exercise is the current
+unanswered item. The final valid attempt marks the assessment completed
+in the same transaction.
 
 Request:
 
-```json
+\`\`\`json
+
 {
-  "assessment_id": "a03d3789-d1fc-40b5-99f9-9a50b2d10e90",
-  "exercise_id": "a28cbd72-513a-45bd-9273-63d4eb857352",
-  "selected_option_id": "a",
-  "response_time_ms": 8200,
-  "hints_used": 0,
-  "idempotency_key": "b04f6050-c72e-4e75-89d8-64f123b83a37"
+
+  "assessment_id": "a03d3789-d1fc-40b5-99f9-9a50b2d10e90",
+
+  "exercise_id": "a28cbd72-513a-45bd-9273-63d4eb857352",
+
+  "selected_option_id": "a",
+
+  "response_time_ms": 8200,
+
+  "hints_used": 0,
+
+  "idempotency_key": "b04f6050-c72e-4e75-89d8-64f123b83a37"
+
 }
-```
 
-Response `200 OK`:
+\`\`\`
 
-```json
+Response \`200 OK\`:
+
+\`\`\`json
+
 {
-  "attempt": {
-    "id": "23c4ceab-4118-4bdc-8a5b-76a20f8caf6a",
-    "exercise_id": "a28cbd72-513a-45bd-9273-63d4eb857352",
-    "selected_option_id": "a",
-    "is_correct": true,
-    "correct_option_id": "a",
-    "explanation": "You found the word that makes the sentence complete.",
-    "response_time_ms": 8200,
-    "hints_used": 0
-  },
-  "assessment": {
-    "id": "a03d3789-d1fc-40b5-99f9-9a50b2d10e90",
-    "status": "in_progress",
-    "assessment_completed": false,
-    "current_position": 2,
-    "total_items": 6
-  },
-  "next_exercise": {
-    "id": "d39af818-efba-4b75-aefb-df373947bd4a",
-    "kind": "decoding",
-    "skill": {"slug": "decoding", "name": "Decoding"},
-    "difficulty": 2,
-    "language": "en",
-    "instruction": null,
-    "prompt": "Which word rhymes with “train”?",
-    "options": [
-      {"id": "a", "text": "brain"},
-      {"id": "b", "text": "stone"},
-      {"id": "c", "text": "bright"}
-    ]
-  }
+
+  "attempt": {
+
+    "id": "23c4ceab-4118-4bdc-8a5b-76a20f8caf6a",
+
+    "exercise_id": "a28cbd72-513a-45bd-9273-63d4eb857352",
+
+    "selected_option_id": "a",
+
+    "is_correct": true,
+
+    "correct_option_id": "a",
+
+    "explanation": "You found the word that makes the sentence
+complete.",
+
+    "response_time_ms": 8200,
+
+    "hints_used": 0
+
+  },
+
+  "assessment": {
+
+    "id": "a03d3789-d1fc-40b5-99f9-9a50b2d10e90",
+
+    "status": "in_progress",
+
+    "assessment_completed": false,
+
+    "current_position": 2,
+
+    "total_items": 9
+
+  },
+
+  "next_exercise": {
+
+    "id": "d39af818-efba-4b75-aefb-df373947bd4a",
+
+    "kind": "decoding",
+
+    "skill": {"slug": "decoding", "name": "Decoding"},
+
+    "difficulty": 2,
+
+    "language": "en",
+
+    "instruction": null,
+
+    "prompt": "Which word rhymes with "train"?",
+
+    "options": \[
+
+      {"id": "a", "text": "brain"},
+
+      {"id": "b", "text": "stone"},
+
+      {"id": "c", "text": "bright"}
+
+    \]
+
+  }
+
 }
-```
 
-On the final item, return `status: "completed"`, `assessment_completed: true`, `next_exercise: null`, and `completed_at`. A repeat submission with the same idempotency key and identical request body returns the original result. Reusing a key with a different body, a different duplicate submission, or an out-of-order submission returns `409 Conflict`. The frontend route guard is only UX; the API must enforce completion and item order too.
+\`\`\`
 
-### Practice exercises
+On the final item, return \`status: "completed"\`,
+\`assessment_completed: true\`, \`next_exercise: null\`, and
+\`completed_at\`. A repeat submission with the same idempotency key and
+identical request body returns the original result. Reusing a key with a
+different body, a different duplicate submission, or an out-of-order
+submission returns \`409 Conflict\`. The frontend route guard is only
+UX; the API must enforce completion and item order too.
 
-`POST /exercises/next/` requests the next practice exercise. Use POST because LLM generation/selection may create a persistent exercise. The endpoint should be idempotent for a given request key so network retries do not generate a stack of unused exercises.
+**\### Practice exercises**
+
+\`POST /exercises/next/\` requests the next practice exercise. Use POST
+because LLM generation/selection may create a persistent exercise. The
+endpoint should be idempotent for a given request key so network retries
+do not generate a stack of unused exercises.
 
 Request:
 
-```json
+\`\`\`json
+
 {
-  "skill": "reading_fluency",
-  "difficulty": 2,
-  "idempotency_key": "5a27b42e-7a84-466f-85cc-77044f8b250a"
+
+  "skill": "reading_fluency",
+
+  "difficulty": 2,
+
+  "idempotency_key": "5a27b42e-7a84-466f-85cc-77044f8b250a"
+
 }
-```
 
-Returns one safe-to-display exercise in the same shape as `assessment.exercise`. The backend uses the learner's profile, history, locale, and interests to select or generate appropriate content. Requested skill/difficulty are hints, not authority to bypass safety or learner constraints.
+\`\`\`
 
-`POST /exercises/attempt/`: same answer fields as assessment attempt except `assessment_id`; response contains the `attempt` feedback object and refreshed progress. The correctness value is calculated by the server.
+Returns one safe-to-display exercise in the same shape as
+\`assessment.exercise\`. The backend uses the learner's profile,
+history, locale, and interests to select or generate appropriate
+content. Requested skill/difficulty are hints, not authority to bypass
+safety or learner constraints.
 
-```json
+\`POST /exercises/attempt/\`: same answer fields as assessment attempt
+except \`assessment_id\`; response contains the \`attempt\` feedback
+object and refreshed progress. The correctness value is calculated by
+the server.
+
+\`\`\`json
+
 {
-  "exercise_id": "a28cbd72-513a-45bd-9273-63d4eb857352",
-  "selected_option_id": "b",
-  "response_time_ms": 10200,
-  "hints_used": 1,
-  "idempotency_key": "be193407-52ab-4af5-8159-c94fc17d3f23"
+
+  "exercise_id": "a28cbd72-513a-45bd-9273-63d4eb857352",
+
+  "selected_option_id": "b",
+
+  "response_time_ms": 10200,
+
+  "hints_used": 1,
+
+  "idempotency_key": "be193407-52ab-4af5-8159-c94fc17d3f23"
+
 }
-```
 
-### Real-world scenario
+\`\`\`
 
-`POST /real-world/next/` returns a scenario and a linked safe-to-display exercise. Use an idempotency key if obtaining the next scenario persists generated content.
+**\### Real-world scenario**
 
-```json
+\`POST /real-world/next/\` returns a scenario and a linked
+safe-to-display exercise. Use an idempotency key if obtaining the next
+scenario persists generated content.
+
+\`\`\`json
+
 {
-  "scenario": {
-    "id": "c6f62a7b-3aa4-4f20-b9f5-c16cc8f4e01b",
-    "category": "getting_around",
-    "title": "A bus to the city",
-    "heading": "LIVE DEPARTURES",
-    "context": {
-      "route_number": "12",
-      "destination": "City Centre",
-      "departure": "08:35",
-      "platform": "4",
-      "status": "on_time",
-      "next_departure": "09:05",
-      "next_platform": "2"
-    }
-  },
-  "exercise": {
-    "id": "a28cbd72-513a-45bd-9273-63d4eb857352",
-    "kind": "comprehension",
-    "skill": {"slug": "everyday_reading", "name": "Everyday reading"},
-    "difficulty": 2,
-    "language": "en",
-    "instruction": null,
-    "prompt": "Which platform should you go to?",
-    "options": [
-      {"id": "a", "text": "Platform 2"},
-      {"id": "b", "text": "Platform 3"},
-      {"id": "c", "text": "Platform 4"}
-    ]
-  }
+
+  "scenario": {
+
+    "id": "c6f62a7b-3aa4-4f20-b9f5-c16cc8f4e01b",
+
+    "category": "getting_around",
+
+    "title": "A bus to the city",
+
+    "heading": "LIVE DEPARTURES",
+
+    "context": {
+
+      "route_number": "12",
+
+      "destination": "City Centre",
+
+      "departure": "08:35",
+
+      "platform": "4",
+
+      "status": "on_time",
+
+      "next_departure": "09:05",
+
+      "next_platform": "2"
+
+    }
+
+  },
+
+  "exercise": {
+
+    "id": "a28cbd72-513a-45bd-9273-63d4eb857352",
+
+    "kind": "comprehension",
+
+    "skill": {"slug": "everyday_reading", "name": "Everyday reading"},
+
+    "difficulty": 2,
+
+    "language": "en",
+
+    "instruction": null,
+
+    "prompt": "Which platform should you go to?",
+
+    "options": \[
+
+      {"id": "a", "text": "Platform 2"},
+
+      {"id": "b", "text": "Platform 3"},
+
+      {"id": "c", "text": "Platform 4"}
+
+    \]
+
+  }
+
 }
-```
 
-Submit answers to `/exercises/attempt/` with the same payload as practice.
+\`\`\`
 
-### Progress and dashboard
+Submit answers to \`/exercises/attempt/\` with the same payload as
+practice.
 
-`GET /progress/` returns server-calculated data matching the dashboard and progress widgets:
+**\### Progress and dashboard**
 
-```json
+\`GET /progress/\` returns server-calculated data matching the dashboard
+and progress widgets:
+
+\`\`\`json
+
 {
-  "exercises_completed": 24,
-  "current_streak": 4,
-  "skills": [
-    {"id": "cf4518d4-3fc9-48d0-a740-6da2ec3f472a", "slug": "reading_fluency", "name": "Reading fluency", "progress": 58, "change": 13},
-    {"id": "6402b756-6cea-41a6-87ee-415311011a3b", "slug": "decoding", "name": "Decoding", "progress": 68, "change": 11}
-  ],
-  "achievements": [
-    {"id": "2cdf4608-bb11-4bc9-8c58-939defe5f707", "code": "three_day_streak", "title": "Finding your rhythm", "description": "Practiced 3 days in a row", "icon": "streak"}
-  ]
+
+  "exercises_completed": 24,
+
+  "current_streak": 4,
+
+  "skills": \[
+
+    {"id": "cf4518d4-3fc9-48d0-a740-6da2ec3f472a", "slug":
+"reading_fluency", "name": "Reading fluency", "progress": 58, "change":
+13},
+
+    {"id": "6402b756-6cea-41a6-87ee-415311011a3b", "slug": "decoding",
+"name": "Decoding", "progress": 68, "change": 11}
+
+  \],
+
+  "achievements": \[
+
+    {"id": "2cdf4608-bb11-4bc9-8c58-939defe5f707", "code":
+"three_day_streak", "title": "Finding your rhythm", "description":
+"Practiced 3 days in a row", "icon": "streak"}
+
+  \]
+
 }
-```
 
-The current dashboard hardcodes its greeting date and next activity. For a fully backend-driven dashboard, add `GET /dashboard/` returning `next_activity` (title, description, skill, estimated minutes, difficulty, reason, and destination) alongside or separately from `/progress/`. The client should not ask the LLM to invent recommendation reasons directly in the browser.
+\`\`\`
 
-## Errors and validation
+The current dashboard hardcodes its greeting date and next activity. For
+a fully backend-driven dashboard, add \`GET /dashboard/\` returning
+\`next_activity\` (title, description, skill, estimated minutes,
+difficulty, reason, and destination) alongside or separately from
+\`/progress/\`. The client should not ask the LLM to invent
+recommendation reasons directly in the browser.
+
+\*\*## Initial assessment bank
+
+The baseline bank is universal in constructs but versioned by age group.
+Target total experience: approximately 10-12 minutes.
+
+  -----------------------------------------------------------------------
+  Age group                           Assessment emphasis
+  ----------------------------------- -----------------------------------
+  `under_12`                          phonological awareness,
+                                      letter-sound knowledge, decoding,
+                                      word recognition, rapid naming,
+                                      short oral reading, spelling,
+                                      comprehension, brief memory
+                                      microtask
+
+  `12_15`                             balanced profile with
+                                      adolescent-appropriate
+                                      multisyllabic words, connected
+                                      text, spelling and comprehension
+
+  `16_18`                             brief high-level
+                                      phonological/orthographic checks
+                                      plus stronger emphasis on
+                                      automaticity,
+                                      academic/informational reading,
+                                      spelling and comprehension
+
+  `19_plus`                           adult-respectful
+                                      functional/work/everyday content
+                                      with the same underlying literacy
+                                      constructs
+  -----------------------------------------------------------------------
+
+Recommended sequence for every bank:
+
+1.  Phonological awareness/manipulation.
+2.  Letter-sound or orthographic-pattern knowledge.
+3.  Novel-word decoding.
+4.  Familiar-word recognition.
+5.  Rapid naming.
+6.  Oral reading fluency.
+7.  Spelling.
+8.  Reading comprehension.
+9.  Optional/supplementary working-memory microtask.
+
+Assessment items must be curated, versioned, language-appropriate and
+piloted. Example content can seed development, but it must not be
+described as standardized or norm-referenced without validation.
+
+## Errors and validation\*\*
 
 Use a consistent error body:
 
-```json
+\`\`\`json
+
 {
-  "error": {
-    "code": "invalid_choice",
-    "message": "Choose one of the options for this exercise.",
-    "fields": {"selected_option_id": ["Invalid option for this exercise."]}
-  }
+
+  "error": {
+
+    "code": "invalid_choice",
+
+    "message": "Choose one of the options for this exercise.",
+
+    "fields": {"selected_option_id": \["Invalid option for this
+exercise."\]}
+
+  }
+
 }
-```
 
-Recommended status codes: `400` invalid fields or payload, `401` unauthenticated, `403` forbidden, `404` unknown resource, `409` duplicate/out-of-order assessment attempt, `429` rate limited, and `503` generation temporarily unavailable. Do not return stack traces or LLM provider details.
+\`\`\`
 
-Validate and bound response times/hints, enforce per-user ownership on every object lookup, and rate-limit authentication and LLM-backed endpoints. Treat learner interests and profile text as data, never as trusted LLM instructions.
+Recommended status codes: \`400\` invalid fields or payload, \`401\`
+unauthenticated, \`403\` forbidden, \`404\` unknown resource, \`409\`
+duplicate/out-of-order assessment attempt, \`429\` rate limited, and
+\`503\` generation temporarily unavailable. Do not return stack traces
+or LLM provider details.
 
-## Frontend integration changes to plan
+Validate and bound response times/hints, enforce per-user ownership on
+every object lookup, and rate-limit authentication and LLM-backed
+endpoints. Treat learner interests and profile text as data, never as
+trusted LLM instructions.
 
-1. Replace mock services with an Angular API service and map snake_case API DTOs to the existing camelCase view models.
-2. Change public IDs from `number` to `string` (UUID).
-3. Map the current UI's age-group, language, goal, and interest labels to stable backend codes; use `en`/`es` language tags rather than display labels.
-4. Split the current `ExerciseContent` contract: a fetched exercise has option IDs/text but **no `correctAnswer`**; a submitted-attempt response contains `is_correct`, `correct_option_id`, and `explanation`.
-5. Load assessment state with `GET /assessment/` and start/resume with `POST /assessment/`; use returned position, total, and next exercise instead of a local array/index.
-6. Keep `assessment_completed` from `/auth/me/` as display state only; backend checks must still block repeat assessment attempts.
-7. Replace the current comma-separated profile interests input with curated picker values mapped to `Interest.slug`.
-8. `text_to_speech` stays a browser preference; it does not require a backend speech endpoint.
+**\## Frontend integration changes to plan**
+
+1\. Replace mock services with an Angular API service and map snake_case
+API DTOs to the existing camelCase view models.
+
+2\. Change public IDs from \`number\` to \`string\` (UUID).
+
+3\. Map the current UI's age-group, goal, and interest labels to stable
+backend codes. Do not collect or store a learner-level preferred
+language; the selected assessment/exercise content carries its own
+language tag.
+
+4\. Split the current \`ExerciseContent\` contract: a fetched exercise
+has option IDs/text but **\*\*no \`correctAnswer\`\*\***; a
+submitted-attempt response contains \`is_correct\`,
+\`correct_option_id\`, and \`explanation\`.
+
+5\. Load assessment state with \`GET /assessment/\` and start/resume
+with \`POST /assessment/\`; use returned position, total, and next
+exercise instead of a local array/index.
+
+6\. Keep \`assessment_completed\` from \`/auth/me/\` as display state
+only; backend checks must still block repeat assessment attempts.
+
+7\. Map curated interest-picker values to \`Interest.slug\`.
+
+8\. \`text_to_speech\` stays a browser preference; it does not require a
+backend speech endpoint. Speak exercise content using the exercise's
+language tag, falling back to the browser locale; no preferred-language
+profile setting is needed.

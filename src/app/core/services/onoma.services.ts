@@ -27,7 +27,6 @@ export const API_ENDPOINTS = {
 const defaultProfile: LearnerProfile = {
   name: 'Alex',
   ageGroup: '16–18',
-  preferredLanguage: 'English',
   learningGoals: ['Reading faster', 'Understanding texts'],
   interests: ['Music', 'Stories', 'Space'],
   currentFocus: 'Reading fluency',
@@ -179,7 +178,7 @@ export class AuthService {
     id: 1,
     name: defaultProfile.name,
     email: 'alex@example.com',
-    assessmentCompleted: true,
+    assessmentCompleted: false,
     profile: defaultProfile,
   });
 

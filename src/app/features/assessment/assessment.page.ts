@@ -77,7 +77,7 @@ export class AssessmentPage {
 
   nextExercise(): void {
     if (this.index() === this.exercises.length - 1) {
-      void this.router.navigate(['/dashboard']);
+      void this.router.navigate(['/profile'], { queryParams: { afterAssessment: 'true' } });
       return;
     }
     this.index.update((value) => value + 1);

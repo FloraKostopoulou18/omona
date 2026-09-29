@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { afterEach } from 'vitest';
-import { UserService } from '../../core/services/onoma.services';
+import { AuthService, UserService } from '../../core/services/onoma.services';
 import { ProfilePage } from './profile.page';
 
 describe('ProfilePage', () => {
@@ -67,5 +67,44 @@ describe('ProfilePage', () => {
     fixture.detectChanges();
     expect(preview.style.getPropertyValue('--reading-font-family')).toBe("'DM Sans', sans-serif");
     expect(document.documentElement.style.getPropertyValue('--reading-font-family')).toBe("'DM Sans', sans-serif");
+  });
+
+  it('presents only accessibility preferences after the initial assessment', async () => {
+    TestBed.overrideProvider(ActivatedRoute, {
+      useValue: {
+        snapshot: { queryParamMap: convertToParamMap({ afterAssessment: 'true' }) },
+      },
+    });
+
+    const fixture = TestBed.createComponent(ProfilePage);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(fixture.nativeElement.textContent).toContain('Choose what feels right for you.');
+    expect(fixture.nativeElement.textContent).toContain('Reading preferences');
+    expect(fixture.nativeElement.textContent).toContain('Save preferences and continue');
+    expect(fixture.nativeElement.textContent).toContain('Skip for now');
+    expect(fixture.nativeElement.textContent).not.toContain('Your interests & goals');
+    expect(fixture.nativeElement.querySelector('input[formControlName="name"]')).toBeNull();
+  });
+
+  it('saves curated interest selections from the profile picker', async () => {
+    const fixture = TestBed.createComponent(ProfilePage);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const options = Array.from(
+      fixture.nativeElement.querySelectorAll('.interest-option'),
+    ) as HTMLElement[];
+    const animals = options.find((option) => option.textContent?.includes('Animals'));
+    expect(animals).toBeDefined();
+    (animals!.querySelector('input') as HTMLInputElement).click();
+    fixture.detectChanges();
+
+    (fixture.nativeElement.querySelector('form') as HTMLFormElement).dispatchEvent(new Event('submit'));
+    fixture.detectChanges();
+
+    expect(TestBed.inject(AuthService).currentUser.profile.interests).toContain('Animals');
+    expect(fixture.nativeElement.querySelector('input[formControlName="interests"]')).toBeNull();
   });
 });

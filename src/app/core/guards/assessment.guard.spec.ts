@@ -21,6 +21,14 @@ describe('assessmentPendingGuard', () => {
     });
   });
 
+  it('keeps the initial demo learner eligible to take the assessment', async () => {
+    const router = TestBed.inject(Router);
+
+    await router.navigateByUrl('/assessment');
+
+    expect(router.url).toBe('/assessment');
+  });
+
   it('allows a newly registered learner to take the assessment once', async () => {
     const auth = TestBed.inject(AuthService);
     const router = TestBed.inject(Router);
@@ -36,6 +44,7 @@ describe('assessmentPendingGuard', () => {
   });
 
   it('redirects learners who already completed the assessment', async () => {
+    TestBed.inject(AuthService).completeAssessment();
     const router = TestBed.inject(Router);
 
     await router.navigateByUrl('/assessment');

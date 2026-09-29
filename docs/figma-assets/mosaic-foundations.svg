@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="1040" viewBox="0 0 1440 1040" fill="none">
+  <rect width="1440" height="1040" fill="#F6F8F6"/>
+  <text x="64" y="76" fill="#263943" font-family="Manrope, sans-serif" font-size="38" font-weight="800">Mosaic</text>
+  <text x="64" y="108" fill="#586970" font-family="DM Sans, sans-serif" font-size="15">Design foundations · Figma import sheet</text>
+  <rect x="1271" y="48" width="105" height="36" rx="18" fill="#DCEFEB"/>
+  <text x="1323" y="71" text-anchor="middle" fill="#155E5B" font-family="DM Sans, sans-serif" font-size="11" font-weight="700">LIGHT THEME</text>
+
+  <rect x="64" y="145" width="1312" height="310" rx="22" fill="#FFFFFF" stroke="#DCE6E2"/>
+  <text x="96" y="188" fill="#263943" font-family="Manrope, sans-serif" font-size="20" font-weight="700">Color palette</text>
+  <text x="96" y="213" fill="#586970" font-family="DM Sans, sans-serif" font-size="12">Core application tokens in use. Accent colors are for emphasis, not long reading copy.</text>
+
+  <rect x="96" y="239" width="194" height="80" rx="12" fill="#F6F8F6" stroke="#DCE6E2"/>
+  <text x="110" y="269" fill="#263943" font-family="DM Sans, sans-serif" font-size="13" font-weight="700">Canvas</text>
+  <text x="110" y="297" fill="#586970" font-family="DM Sans, sans-serif" font-size="12">#F6F8F6</text>
+  <rect x="306" y="239" width="194" height="80" rx="12" fill="#FFFFFF" stroke="#DCE6E2"/>
+  <text x="320" y="269" fill="#263943" font-family="DM Sans, sans-serif" font-size="13" font-weight="700">Paper</text>
+  <text x="320" y="297" fill="#586970" font-family="DM Sans, sans-serif" font-size="12">#FFFFFF</text>
+  <rect x="516" y="239" width="194" height="80" rx="12" fill="#263943"/>
+  <text x="530" y="269" fill="#FFFFFF" font-family="DM Sans, sans-serif" font-size="13" font-weight="700">Ink</text>
+  <text x="530" y="297" fill="#E5ECEB" font-family="DM Sans, sans-serif" font-size="12">#263943</text>
+  <rect x="726" y="239" width="194" height="80" rx="12" fill="#586970"/>
+  <text x="740" y="269" fill="#FFFFFF" font-family="DM Sans, sans-serif" font-size="13" font-weight="700">Muted text</text>
+  <text x="740" y="297" fill="#E5ECEB" font-family="DM Sans, sans-serif" font-size="12">#586970</text>
+  <rect x="936" y="239" width="194" height="80" rx="12" fill="#087C79"/>
+  <text x="950" y="269" fill="#FFFFFF" font-family="DM Sans, sans-serif" font-size="13" font-weight="700">Primary teal</text>
+  <text x="950" y="297" fill="#FFFFFF" font-family="DM Sans, sans-serif" font-size="12">#087C79</text>
+  <rect x="1146" y="239" width="194" height="80" rx="12" fill="#DCEFEB"/>
+  <text x="1160" y="269" fill="#155E5B" font-family="DM Sans, sans-serif" font-size="13" font-weight="700">Selection surface</text>
+  <text x="1160" y="297" fill="#155E5B" font-family="DM Sans, sans-serif" font-size="12">#DCEFEB</text>
+
+  <rect x="96" y="337" width="194" height="80" rx="12" fill="#DFF2EE"/>
+  <text x="110" y="367" fill="#263943" font-family="DM Sans, sans-serif" font-size="13" font-weight="700">Mosaic blue</text>
+  <text x="110" y="395" fill="#586970" font-family="DM Sans, sans-serif" font-size="12">#DFF2EE</text>
+  <rect x="306" y="337" width="194" height="80" rx="12" fill="#F7F0D7"/>
+  <text x="320" y="367" fill="#263943" font-family="DM Sans, sans-serif" font-size="13" font-weight="700">Warm yellow</text>
+  <text x="320" y="395" fill="#586970" font-family="DM Sans, sans-serif" font-size="12">#F7F0D7</text>
+  <rect x="516" y="337" width="194" height="80" rx="12" fill="#FFE4DD"/>
+  <text x="530" y="367" fill="#263943" font-family="DM Sans, sans-serif" font-size="13" font-weight="700">Coral</text>
+  <text x="530" y="395" fill="#586970" font-family="DM Sans, sans-serif" font-size="12">#FFE4DD</text>
+  <rect x="726" y="337" width="194" height="80" rx="12" fill="#DCE6E2"/>
+  <text x="740" y="367" fill="#263943" font-family="DM Sans, sans-serif" font-size="13" font-weight="700">Border</text>
+  <text x="740" y="395" fill="#586970" font-family="DM Sans, sans-serif" font-size="12">#DCE6E2</text>
+  <rect x="936" y="337" width="194" height="80" rx="12" fill="#075F5C"/>
+  <text x="950" y="367" fill="#FFFFFF" font-family="DM Sans, sans-serif" font-size="13" font-weight="700">Action hover</text>
+  <text x="950" y="395" fill="#FFFFFF" font-family="DM Sans, sans-serif" font-size="12">#075F5C</text>
+  <rect x="1146" y="337" width="194" height="80" rx="12" fill="#EDF5F2"/>
+  <text x="1160" y="367" fill="#263943" font-family="DM Sans, sans-serif" font-size="13" font-weight="700">Hover / feedback</text>
+  <text x="1160" y="395" fill="#586970" font-family="DM Sans, sans-serif" font-size="12">#EDF5F2</text>
+
+  <rect x="64" y="477" width="633" height="270" rx="22" fill="#FFFFFF" stroke="#DCE6E2"/>
+  <text x="96" y="520" fill="#263943" font-family="Manrope, sans-serif" font-size="20" font-weight="700">Typography</text>
+  <text x="96" y="548" fill="#586970" font-family="DM Sans, sans-serif" font-size="12">Manrope for headings · DM Sans for interface and reading content</text>
+  <text x="96" y="603" fill="#263943" font-family="Manrope, sans-serif" font-size="30" font-weight="800">A little progress, every day</text>
+  <text x="96" y="634" fill="#586970" font-family="DM Sans, sans-serif" font-size="15">Clear, comfortable body copy for calm and focused reading.</text>
+  <text x="96" y="674" fill="#087C79" font-family="DM Sans, sans-serif" font-size="11" font-weight="700" letter-spacing="1.4">EYEBROW / 11 PX / UPPERCASE</text>
+  <text x="96" y="711" fill="#263943" font-family="DM Sans, sans-serif" font-size="13" font-weight="700">Field label / 13 px / bold</text>
+  <text x="394" y="711" fill="#586970" font-family="DM Sans, sans-serif" font-size="12">Support / 12 px / regular</text>
+
+  <rect x="721" y="477" width="655" height="270" rx="22" fill="#FFFFFF" stroke="#DCE6E2"/>
+  <text x="753" y="520" fill="#263943" font-family="Manrope, sans-serif" font-size="20" font-weight="700">Core components</text>
+  <text x="753" y="548" fill="#586970" font-family="DM Sans, sans-serif" font-size="12">Rounded corners, gentle borders, visible focus, generous targets</text>
+  <rect x="753" y="574" width="184" height="48" rx="12" fill="#087C79"/>
+  <text x="845" y="604" text-anchor="middle" fill="#FFFFFF" font-family="DM Sans, sans-serif" font-size="13" font-weight="700">Primary action</text>
+  <rect x="950" y="574" width="184" height="48" rx="12" fill="#FFFFFF" stroke="#DCE6E2"/>
+  <text x="1042" y="604" text-anchor="middle" fill="#263943" font-family="DM Sans, sans-serif" font-size="13" font-weight="700">Secondary action</text>
+  <rect x="753" y="642" width="381" height="57" rx="13" fill="#FFFFFF" stroke="#DCE6E2"/>
+  <circle cx="779" cy="670" r="9" fill="#FFFFFF" stroke="#B8C6C1" stroke-width="2"/>
+  <text x="800" y="675" fill="#263943" font-family="DM Sans, sans-serif" font-size="14">Answer choice</text>
+  <rect x="1150" y="642" width="194" height="57" rx="13" fill="#DCEFEB" stroke="#4CA89F"/>
+  <circle cx="1176" cy="670" r="9" fill="#087C79"/>
+  <path d="M1172 670l3 3 5-6" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="1197" y="675" fill="#155E5B" font-family="DM Sans, sans-serif" font-size="14" font-weight="600">Selected</text>
+  <rect x="753" y="713" width="591" height="3" rx="2" fill="#DCE6E2"/>
+
+  <rect x="64" y="769" width="1312" height="215" rx="22" fill="#1D3038"/>
+  <text x="96" y="812" fill="#F0F5F2" font-family="Manrope, sans-serif" font-size="20" font-weight="700">Dark theme reference</text>
+  <text x="96" y="839" fill="#C3D2D1" font-family="DM Sans, sans-serif" font-size="12">Use dark surfaces with accessible contrast; reserve brighter teal for interactive emphasis.</text>
+  <rect x="96" y="862" width="220" height="82" rx="12" fill="#122129" stroke="#39515A"/>
+  <text x="112" y="893" fill="#F0F5F2" font-family="DM Sans, sans-serif" font-size="13" font-weight="700">Canvas</text>
+  <text x="112" y="922" fill="#C3D2D1" font-family="DM Sans, sans-serif" font-size="12">#122129</text>
+  <rect x="331" y="862" width="220" height="82" rx="12" fill="#1D3038" stroke="#39515A"/>
+  <text x="347" y="893" fill="#F0F5F2" font-family="DM Sans, sans-serif" font-size="13" font-weight="700">Paper</text>
+  <text x="347" y="922" fill="#C3D2D1" font-family="DM Sans, sans-serif" font-size="12">#1D3038</text>
+  <rect x="566" y="862" width="220" height="82" rx="12" fill="#F0F5F2"/>
+  <text x="582" y="893" fill="#122129" font-family="DM Sans, sans-serif" font-size="13" font-weight="700">Ink</text>
+  <text x="582" y="922" fill="#263943" font-family="DM Sans, sans-serif" font-size="12">#F0F5F2</text>
+  <rect x="801" y="862" width="220" height="82" rx="12" fill="#C3D2D1"/>
+  <text x="817" y="893" fill="#122129" font-family="DM Sans, sans-serif" font-size="13" font-weight="700">Muted text</text>
+  <text x="817" y="922" fill="#263943" font-family="DM Sans, sans-serif" font-size="12">#C3D2D1</text>
+  <rect x="1036" y="862" width="220" height="82" rx="12" fill="#0E706B"/>
+  <text x="1052" y="893" fill="#FFFFFF" font-family="DM Sans, sans-serif" font-size="13" font-weight="700">Primary action</text>
+  <text x="1052" y="922" fill="#FFFFFF" font-family="DM Sans, sans-serif" font-size="12">#0E706B</text>
+  <rect x="1271" y="862" width="73" height="82" rx="12" fill="#294846"/>
+  <text x="1307" y="893" text-anchor="middle" fill="#F0F5F2" font-family="DM Sans, sans-serif" font-size="11" font-weight="700">SELECT</text>
+  <text x="1307" y="922" text-anchor="middle" fill="#C3D2D1" font-family="DM Sans, sans-serif" font-size="10">#294846</text>
+</svg>

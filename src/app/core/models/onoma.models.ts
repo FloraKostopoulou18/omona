@@ -38,6 +38,17 @@ export const LEARNER_INTERESTS = [
   'Travel',
 ] as const satisfies readonly LearnerInterest[];
 
+export function normalizeLearnerInterests(interests: readonly string[]): LearnerInterest[] {
+  const normalized = interests.map((interest) => {
+    const value = interest.trim().toLocaleLowerCase();
+    if (value === 'stories') return 'Books & stories';
+    if (value === 'space') return 'Science & space';
+    return LEARNER_INTERESTS.find((option) => option.toLocaleLowerCase() === value);
+  });
+
+  return LEARNER_INTERESTS.filter((interest) => normalized.includes(interest));
+}
+
 export interface AccessibilityPreferences {
   readingFont: ReadingFont;
   fontSize: 'comfortable' | 'large' | 'extra-large';
@@ -52,7 +63,6 @@ export interface AccessibilityPreferences {
 export interface LearnerProfile {
   name: string;
   ageGroup: string;
-  preferredLanguage: string;
   learningGoals: string[];
   interests: string[];
   preferences: AccessibilityPreferences;
@@ -91,6 +101,7 @@ export interface Exercise {
   type: ExerciseType;
   skill: string;
   difficulty: number;
+  language?: string;
   content: ExerciseContent;
 }
 
